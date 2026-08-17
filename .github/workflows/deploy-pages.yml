@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - claude/trade-blotter-id-j5a5er
       - claude/github-page-8mle46
   workflow_dispatch:
 
