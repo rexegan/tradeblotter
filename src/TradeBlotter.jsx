@@ -367,7 +367,7 @@ let nextInsId = 1;
 
 const SAMPLE_INSURANCE = [
   { id: nextInsId++, date: "7/6/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", product: "529", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "7/6/22", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
-  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", crmUpdated: "1/15/24", openingAmount: "$200,000", ytdTotal: "$200,000" },
+  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
 ];
 
 const money = (s) => {
