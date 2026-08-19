@@ -69,6 +69,24 @@ const PRODUCT_TYPES = [
   "Other",
 ];
 
+const INSURANCE_PRODUCTS = [
+  "Fixed Annuity",
+  "Fixed Indexed Annuity (FIA)",
+  "Variable Annuity",
+  "RILA – Registered Index-Linked Annuity",
+  "Immediate Annuity (SPIA)",
+  "Deferred Income Annuity (DIA)",
+  "Multi-Year Guaranteed Annuity (MYGA)",
+  "Long-Term Care Insurance",
+  "Life Insurance – Term",
+  "Life Insurance – Whole Life",
+  "Life Insurance – Universal Life",
+  "Life Insurance – Indexed Universal Life (IUL)",
+  "Life Insurance – Variable Universal Life (VUL)",
+  "Disability Income Insurance",
+  "Medicare Supplement",
+];
+
 const CARRIER_MAP = {
   "Fixed Annuity": [
     "Allianz Life", "American Equity", "American National", "Athene Annuity",
@@ -318,6 +336,7 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-17", clientName: "Thompson, Robert & Linda", lastName: "Thompson", firstName: "Robert & Linda", middleName: "", accountNumber: "RWG-10042", accountType: "Joint", custodian: "Schwab", tradeType: "Buy", assetClass: "Equity – Domestic", ticker: "AAPL", securityName: "Apple Inc.", quantity: "100", price: "192.45", totalAmount: "19,245.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Moderate", solicited: "Solicited", discretion: "Discretionary", notes: "" },
   { id: nextId++, tradeDate: "2026-06-17", clientName: "Martinez, Carlos", lastName: "Martinez", firstName: "Carlos", middleName: "", accountNumber: "RWG-10087", accountType: "IRA", custodian: "Fidelity", tradeType: "Sell", assetClass: "Fixed Income – Corporate", ticker: "LQD", securityName: "iShares iBoxx $ Investment Grade Corp Bond ETF", quantity: "250", price: "107.22", totalAmount: "26,805.00", orderType: "Limit", limitPrice: "107.50", timeInForce: "GTC", settlement: "T+2", status: "Submitted", advisor: "Rex Russell", riskLevel: "Moderately Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "Client requested exit before rate announcement" },
   { id: nextId++, tradeDate: "2026-06-16", clientName: "Johnson, Patricia", lastName: "Johnson", firstName: "Patricia", middleName: "", accountNumber: "RWG-10031", accountType: "Roth IRA", custodian: "Schwab", tradeType: "Buy", assetClass: "ETF", ticker: "VTI", securityName: "Vanguard Total Stock Market ETF", quantity: "50", price: "234.10", totalAmount: "11,705.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Aggressive", solicited: "Unsolicited", discretion: "Discretionary", notes: "" },
+  { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
 ];
 
 function SelectField({ label, value, onChange, options, required }) {
@@ -487,7 +506,11 @@ export default function TradeBlotter() {
     setTrades(ts => ts.map(t => t.id === id ? { ...t, status } : t));
   };
 
-  const filtered = trades.filter(t => {
+  const baseTrades = view === "insurance"
+    ? trades.filter(t => INSURANCE_PRODUCTS.includes(t.productType))
+    : trades;
+
+  const filtered = baseTrades.filter(t => {
     const matchSearch = !search || [t.clientName, t.ticker, t.accountNumber, t.securityName].join(" ").toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "All" || t.status === filterStatus;
     const matchType = filterType === "All" || t.tradeType === filterType;
@@ -537,6 +560,15 @@ export default function TradeBlotter() {
               }}
             >📋 BD Blotter</button>
             <button
+              onClick={() => { setView("insurance"); setForm(initialForm); setEditId(null); }}
+              style={{
+                padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
+                background: view === "insurance" ? COLORS.primary : "transparent",
+                color: view === "insurance" ? "#fff" : COLORS.textMuted,
+                border: `1px solid ${view === "insurance" ? COLORS.primary : COLORS.border}`
+              }}
+            >🛡️ Insurance Blotter</button>
+            <button
               onClick={() => { setView("entry"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
@@ -561,14 +593,14 @@ export default function TradeBlotter() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
         {/* Summary Cards */}
-        {view === "blotter" && (
+        {(view === "blotter" || view === "insurance") && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
             {[
               { label: "Total Trades", value: filtered.length, color: COLORS.accent },
               { label: "Total Value", value: "$" + totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: COLORS.accentGold },
-              { label: "Filled", value: trades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
-              { label: "Pending / Submitted", value: trades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
-              { label: "Cancelled / Rejected", value: trades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
+              { label: "Filled", value: baseTrades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
+              { label: "Pending / Submitted", value: baseTrades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
+              { label: "Cancelled / Rejected", value: baseTrades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
             ].map(c => (
               <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
@@ -579,7 +611,7 @@ export default function TradeBlotter() {
         )}
 
         {/* BLOTTER VIEW */}
-        {view === "blotter" && (
+        {(view === "blotter" || view === "insurance") && (
           <>
             {/* Filters */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
