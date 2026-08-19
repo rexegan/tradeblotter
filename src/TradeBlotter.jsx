@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Fragment } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -370,6 +370,9 @@ const SAMPLE_INSURANCE = [
   { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
 ];
 
+const INS_TOP = INS_COLUMNS.slice(0, 17);
+const INS_BOTTOM = INS_COLUMNS.slice(17);
+
 const money = (s) => {
   const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
   return isNaN(n) ? 0 : n;
@@ -441,6 +444,7 @@ export default function TradeBlotter() {
   const [filterType, setFilterType] = useState("All");
   const [editId, setEditId] = useState(null);
   const [toast, setToast] = useState(null);
+  const [confirmDlg, setConfirmDlg] = useState(null);
   const formRef = useRef(null);
 
   const [insRecords, setInsRecords] = useState(SAMPLE_INSURANCE);
@@ -449,8 +453,13 @@ export default function TradeBlotter() {
   const updateIns = (id, key, val) => setInsRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
   const addIns = () => setInsRecords(rs => [{ id: nextInsId++, date: new Date().toLocaleDateString("en-US") }, ...rs]);
   const removeIns = (id) => {
-    setInsRecords(rs => rs.filter(r => r.id !== id));
-    showToast("Record removed.", COLORS.accentRed);
+    setConfirmDlg({
+      message: "Are you sure you're ready to delete this record?",
+      action: () => {
+        setInsRecords(rs => rs.filter(r => r.id !== id));
+        showToast("Record removed.", COLORS.accentRed);
+      },
+    });
   };
 
   const insFiltered = insRecords.filter(r =>
@@ -487,7 +496,10 @@ export default function TradeBlotter() {
     return { ...s, advisors };
   });
   const addAdvisor = () => setSettings(s => ({ ...s, advisors: [...s.advisors, { name: "", crd: "", email: "", phone: "", title: "" }] }));
-  const removeAdvisor = (i) => setSettings(s => ({ ...s, advisors: s.advisors.filter((_, idx) => idx !== i) }));
+  const removeAdvisor = (i) => setConfirmDlg({
+    message: "Are you sure you're ready to delete this advisor?",
+    action: () => setSettings(s => ({ ...s, advisors: s.advisors.filter((_, idx) => idx !== i) })),
+  });
 
   const updateStaff = (i, field, val) => setSettings(s => {
     const supportStaff = [...s.supportStaff];
@@ -495,7 +507,10 @@ export default function TradeBlotter() {
     return { ...s, supportStaff };
   });
   const addStaff = () => setSettings(s => ({ ...s, supportStaff: [...s.supportStaff, { name: "", title: "", email: "", phone: "" }] }));
-  const removeStaff = (i) => setSettings(s => ({ ...s, supportStaff: s.supportStaff.filter((_, idx) => idx !== i) }));
+  const removeStaff = (i) => setConfirmDlg({
+    message: "Are you sure you're ready to delete this staff member?",
+    action: () => setSettings(s => ({ ...s, supportStaff: s.supportStaff.filter((_, idx) => idx !== i) })),
+  });
 
   const togglePreferred = (key, item) => setSettings(s => {
     const list = s[key] || [];
@@ -548,8 +563,13 @@ export default function TradeBlotter() {
   };
 
   const handleDelete = (id) => {
-    setTrades(ts => ts.filter(t => t.id !== id));
-    showToast("Trade removed.", COLORS.accentRed);
+    setConfirmDlg({
+      message: "Are you sure you're ready to delete this trade?",
+      action: () => {
+        setTrades(ts => ts.filter(t => t.id !== id));
+        showToast("Trade removed.", COLORS.accentRed);
+      },
+    });
   };
 
   const handleStatusChange = (id, status) => {
@@ -580,6 +600,26 @@ export default function TradeBlotter() {
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)", animation: "fadeIn 0.2s ease"
         }}>
           {toast.msg}
+        </div>
+      )}
+
+      {/* Delete confirmation */}
+      {confirmDlg && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+          <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 24, maxWidth: 420, width: "100%", boxShadow: "0 10px 40px rgba(0,0,0,0.2)" }}>
+            <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 8 }}>Confirm Delete</div>
+            <div style={{ fontSize: 13, color: COLORS.textLabel, marginBottom: 20 }}>{confirmDlg.message}</div>
+            <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
+              <button onClick={() => setConfirmDlg(null)}
+                style={{ padding: "8px 20px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: "transparent", color: COLORS.textLabel, border: `1px solid ${COLORS.border}` }}>
+                Cancel
+              </button>
+              <button onClick={() => { confirmDlg.action(); setConfirmDlg(null); }}
+                style={{ padding: "8px 20px", borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: "pointer", background: COLORS.accentRed, color: "#fff", border: "none" }}>
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -793,38 +833,56 @@ export default function TradeBlotter() {
             {/* Spreadsheet Table */}
             <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
               <div style={{ overflowX: "auto" }}>
-                <table style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
+                <table style={{ width: "100%", minWidth: 1150, borderCollapse: "collapse", tableLayout: "fixed" }}>
                   <thead>
                     <tr>
                       {INS_GROUPS.map(g => (
-                        <th key={g.label} colSpan={g.span} style={{ padding: "8px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", background: "#f4f4f5", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, whiteSpace: "nowrap" }}>{g.label}</th>
+                        <th key={g.label} colSpan={g.label === "New Investment Information" ? 9 : g.span} style={{ padding: "8px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", background: "#f4f4f5", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.label}</th>
                       ))}
-                      <th rowSpan={2} style={{ width: 44, background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }} />
+                      <th rowSpan={3} style={{ width: 44, background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }} />
                     </tr>
                     <tr style={{ background: COLORS.bgRow }}>
-                      {INS_COLUMNS.map(c => (
-                        <th key={c.key} style={{ width: c.w, padding: "8px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal" }}>{c.label}</th>
+                      {INS_TOP.map(c => (
+                        <th key={c.key} style={{ width: c.key === "middleInitial" ? 40 : c.key === "date" ? 78 : undefined, padding: "7px 8px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                      ))}
+                    </tr>
+                    <tr style={{ background: "#f4f4f5" }}>
+                      {INS_BOTTOM.map(c => (
+                        <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "7px 8px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {insFiltered.length === 0 ? (
-                      <tr><td colSpan={INS_COLUMNS.length + 1} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.</td></tr>
-                    ) : insFiltered.map((r, i) => (
-                      <tr key={r.id} style={{ background: i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard }}>
-                        {INS_COLUMNS.map(c => (
-                          <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}55`, borderRight: `1px solid ${COLORS.border}33` }}>
-                            <input
-                              value={r[c.key] ?? ""}
-                              onChange={e => updateIns(r.id, c.key, e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
-                            />
+                      <tr><td colSpan={INS_TOP.length + 1} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.</td></tr>
+                    ) : insFiltered.map(r => (
+                      <Fragment key={r.id}>
+                        <tr>
+                          {INS_TOP.map(c => (
+                            <td key={c.key} style={{ padding: 0, background: COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}33`, borderRight: `1px solid ${COLORS.border}33` }}>
+                              <input
+                                value={r[c.key] ?? ""}
+                                onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 8px", fontSize: 12, color: COLORS.text, outline: "none" }}
+                              />
+                            </td>
+                          ))}
+                          <td rowSpan={2} style={{ padding: "0 8px", borderBottom: `2px solid ${COLORS.border}`, textAlign: "center", background: COLORS.bgCard }}>
+                            <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
                           </td>
-                        ))}
-                        <td style={{ padding: "0 8px", borderBottom: `1px solid ${COLORS.border}55`, textAlign: "center" }}>
-                          <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
-                        </td>
-                      </tr>
+                        </tr>
+                        <tr>
+                          {INS_BOTTOM.map(c => (
+                            <td key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: 0, background: COLORS.bgRowAlt, borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                              <input
+                                value={r[c.key] ?? ""}
+                                onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 8px", fontSize: 12, color: COLORS.text, outline: "none" }}
+                              />
+                            </td>
+                          ))}
+                        </tr>
+                      </Fragment>
                     ))}
                   </tbody>
                 </table>
