@@ -1,20 +1,22 @@
 import { useState, useRef } from "react";
 
 const COLORS = {
-  bg: "#0d1f3c",
-  bgCard: "#0f1d38",
-  bgInput: "#162a4a",
-  bgRow: "#0a1628",
-  bgRowAlt: "#0d1f3c",
-  border: "#1e3a5f",
-  accent: "#3b82f6",
-  accentHover: "#2563eb",
-  accentGold: "#f59e0b",
-  accentGreen: "#10b981",
-  accentRed: "#ef4444",
-  text: "#ffffff",
-  textMuted: "#94a3b8",
-  textLabel: "#cbd5e1",
+  bg: "#fafafa",
+  bgCard: "#ffffff",
+  bgInput: "#ffffff",
+  bgRow: "#fafafa",
+  bgRowAlt: "#fafafa",
+  border: "#e4e4e7",
+  primary: "#18181b",
+  primaryHover: "#27272a",
+  accent: "#2563eb",
+  accentHover: "#1d4ed8",
+  accentGold: "#d97706",
+  accentGreen: "#059669",
+  accentRed: "#dc2626",
+  text: "#09090b",
+  textMuted: "#71717a",
+  textLabel: "#3f3f46",
 };
 
 const ACCOUNT_TYPES = ["Select...", "Individual", "Joint", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "401(k)", "403(b)", "457(b)", "Pension", "Trust", "Corporate", "Custodial (UTMA)", "529 Plan", "HSA"];
@@ -263,18 +265,18 @@ const STATUS_COLORS = {
   "Pending": COLORS.accentGold,
   "Submitted": COLORS.accent,
   "Filled": COLORS.accentGreen,
-  "Partially Filled": "#a78bfa",
+  "Partially Filled": "#7c3aed",
   "Cancelled": COLORS.accentRed,
-  "Rejected": "#f97316",
+  "Rejected": "#ea580c",
   "Expired": COLORS.textMuted,
-  "On Hold": "#ec4899",
+  "On Hold": "#db2777",
 };
 
 const TRADE_COLORS = {
   "Buy": COLORS.accentGreen,
   "Sell": COLORS.accentRed,
   "Exchange": COLORS.accent,
-  "Rebalance": "#a78bfa",
+  "Rebalance": "#7c3aed",
 };
 
 const initialForm = {
@@ -332,7 +334,7 @@ function SelectField({ label, value, onChange, options, required }) {
         }}
       >
         {options.map(o => <option key={o} value={o} disabled={o.startsWith("──")}
-          style={{ color: o.startsWith("──") ? "#f59e0b" : "#fff", fontWeight: o.startsWith("──") ? 700 : 400, background: "#0d1f3c" }}
+          style={{ color: o.startsWith("──") ? "#d97706" : "#09090b", fontWeight: o.startsWith("──") ? 700 : 400, background: "#ffffff" }}
         >{o}</option>)}
       </select>
     </div>
@@ -500,7 +502,7 @@ export default function TradeBlotter() {
           position: "fixed", top: 20, right: 20, zIndex: 999,
           background: toast.color, color: "#fff", padding: "12px 22px",
           borderRadius: 8, fontWeight: 600, fontSize: 13,
-          boxShadow: "0 4px 20px rgba(0,0,0,0.4)", animation: "fadeIn 0.2s ease"
+          boxShadow: "0 4px 20px rgba(0,0,0,0.15)", animation: "fadeIn 0.2s ease"
         }}>
           {toast.msg}
         </div>
@@ -510,7 +512,7 @@ export default function TradeBlotter() {
       <div style={{ background: COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}`, padding: "0 24px" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: COLORS.accent, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: COLORS.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16 }}>
               RW
             </div>
             <div>
@@ -523,27 +525,27 @@ export default function TradeBlotter() {
               onClick={() => { setView("blotter"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "blotter" ? COLORS.accent : "transparent",
+                background: view === "blotter" ? COLORS.primary : "transparent",
                 color: view === "blotter" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "blotter" ? COLORS.accent : COLORS.border}`
+                border: `1px solid ${view === "blotter" ? COLORS.primary : COLORS.border}`
               }}
             >📋 BD Blotter</button>
             <button
               onClick={() => { setView("entry"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "entry" ? COLORS.accent : "transparent",
+                background: view === "entry" ? COLORS.primary : "transparent",
                 color: view === "entry" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "entry" ? COLORS.accent : COLORS.border}`
+                border: `1px solid ${view === "entry" ? COLORS.primary : COLORS.border}`
               }}
             >+ New Trade</button>
             <button
               onClick={() => setView("settings")}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "settings" ? COLORS.accentGold : "transparent",
-                color: view === "settings" ? "#000" : COLORS.textMuted,
-                border: `1px solid ${view === "settings" ? COLORS.accentGold : COLORS.border}`
+                background: view === "settings" ? COLORS.primary : "transparent",
+                color: view === "settings" ? "#fff" : COLORS.textMuted,
+                border: `1px solid ${view === "settings" ? COLORS.primary : COLORS.border}`
               }}
             >⚙️ Settings</button>
           </div>
@@ -559,7 +561,7 @@ export default function TradeBlotter() {
               { label: "Total Trades", value: filtered.length, color: COLORS.accent },
               { label: "Total Value", value: "$" + totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: COLORS.accentGold },
               { label: "Filled", value: trades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
-              { label: "Pending / Submitted", value: trades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#a78bfa" },
+              { label: "Pending / Submitted", value: trades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
               { label: "Cancelled / Rejected", value: trades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
             ].map(c => (
               <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
@@ -615,7 +617,7 @@ export default function TradeBlotter() {
                       <tr><td colSpan={10} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No trades found. Click <strong style={{ color: COLORS.accent }}>+ New Trade</strong> to add one.</td></tr>
                     ) : filtered.map((t, i) => (
                       <tr key={t.id} style={{ background: i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}33`, transition: "background 0.15s" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "#162a4a"}
+                        onMouseEnter={e => e.currentTarget.style.background = "#f4f4f5"}
                         onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard}
                       >
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap", fontSize: 12, color: COLORS.textLabel }}>{t.tradeDate}</td>
@@ -711,7 +713,7 @@ export default function TradeBlotter() {
                         : ["Select...", ...all];
                       return opts.map(o => (
                         <option key={o} value={o} disabled={o.startsWith("──")}
-                          style={{ color: o.startsWith("──") ? "#f59e0b" : "#fff", fontWeight: o.startsWith("──") ? 700 : 400, background: "#0d1f3c" }}>
+                          style={{ color: o.startsWith("──") ? "#d97706" : "#09090b", fontWeight: o.startsWith("──") ? 700 : 400, background: "#ffffff" }}>
                           {o}
                         </option>
                       ));
@@ -809,7 +811,7 @@ export default function TradeBlotter() {
                 </button>
                 <button
                   onClick={handleSave}
-                  style={{ padding: "10px 28px", borderRadius: 7, fontWeight: 700, fontSize: 14, cursor: "pointer", background: COLORS.accent, color: "#fff", border: "none", boxShadow: `0 2px 10px ${COLORS.accent}55` }}
+                  style={{ padding: "10px 28px", borderRadius: 7, fontWeight: 700, fontSize: 14, cursor: "pointer", background: COLORS.primary, color: "#fff", border: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}
                 >
                   {editId !== null ? "💾 Update Trade" : "✅ Submit Trade"}
                 </button>
@@ -916,9 +918,9 @@ export default function TradeBlotter() {
                           <button key={opt} onClick={() => togglePreferred(key, opt)}
                             style={{
                               padding: "5px 12px", borderRadius: 20, fontSize: 12, cursor: "pointer", fontWeight: 600,
-                              background: selected ? COLORS.accent : COLORS.bgInput,
+                              background: selected ? COLORS.primary : COLORS.bgInput,
                               color: selected ? "#fff" : COLORS.textMuted,
-                              border: `1px solid ${selected ? COLORS.accent : COLORS.border}`,
+                              border: `1px solid ${selected ? COLORS.primary : COLORS.border}`,
                               transition: "all 0.15s"
                             }}>
                             {selected ? "✓ " : ""}{opt}
@@ -952,7 +954,7 @@ export default function TradeBlotter() {
             {/* Save Button */}
             <div style={{ display: "flex", justifyContent: "flex-end", paddingBottom: 24 }}>
               <button onClick={() => showToast("Settings saved successfully.")}
-                style={{ padding: "12px 32px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer", background: COLORS.accentGold, color: "#000", border: "none", boxShadow: `0 2px 12px ${COLORS.accentGold}55` }}>
+                style={{ padding: "12px 32px", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer", background: COLORS.primary, color: "#fff", border: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
                 💾 Save Settings
               </button>
             </div>
@@ -965,11 +967,11 @@ export default function TradeBlotter() {
         input[type=date] { text-align: left !important; direction: ltr; }
         input[type=date]::-webkit-date-and-time-value { text-align: left; }
         input[type=date]::-webkit-inner-spin-button { display: none; }
-        input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.75) !important; }
-        input::-webkit-input-placeholder, textarea::-webkit-input-placeholder { color: rgba(255,255,255,0.75) !important; }
-        input::-moz-placeholder, textarea::-moz-placeholder { color: rgba(255,255,255,0.75) !important; }
-        input:-ms-input-placeholder, textarea:-ms-input-placeholder { color: rgba(255,255,255,0.75) !important; }
-        select option { background: #0d1f3c; color: #fff; }
+        input::placeholder, textarea::placeholder { color: #a1a1aa !important; }
+        input::-webkit-input-placeholder, textarea::-webkit-input-placeholder { color: #a1a1aa !important; }
+        input::-moz-placeholder, textarea::-moz-placeholder { color: #a1a1aa !important; }
+        input:-ms-input-placeholder, textarea:-ms-input-placeholder { color: #a1a1aa !important; }
+        select option { background: #ffffff; color: #09090b; }
         input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
         tr { transition: background 0.1s; }
@@ -984,7 +986,7 @@ function Section({ title, icon, children }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14, paddingBottom: 8, borderBottom: `1px solid ${COLORS.border}` }}>
         <span style={{ fontSize: 15 }}>{icon}</span>
-        <span style={{ fontWeight: 700, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em", color: COLORS.accent }}>{title}</span>
+        <span style={{ fontWeight: 700, fontSize: 13, textTransform: "uppercase", letterSpacing: "0.1em", color: COLORS.text }}>{title}</span>
       </div>
       {children}
     </div>
@@ -1003,7 +1005,7 @@ function SettingsCard({ title, icon, children }) {
     <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
       <div style={{ background: COLORS.bgRow, padding: "12px 20px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
-        <span style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.accentGold }}>{title}</span>
+        <span style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.text }}>{title}</span>
       </div>
       <div style={{ padding: 20 }}>{children}</div>
     </div>
