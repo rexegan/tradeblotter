@@ -284,6 +284,9 @@ const initialForm = {
   settlementDate: "",
   accountNumber: "",
   clientName: "",
+  lastName: "",
+  firstName: "",
+  middleName: "",
   accountType: "Select...",
   custodian: "Select...",
   tradeType: "Select...",
@@ -312,9 +315,9 @@ const initialForm = {
 let nextId = 1;
 
 const SAMPLE_TRADES = [
-  { id: nextId++, tradeDate: "2026-06-17", clientName: "Thompson, Robert & Linda", accountNumber: "RWG-10042", accountType: "Joint", custodian: "Schwab", tradeType: "Buy", assetClass: "Equity – Domestic", ticker: "AAPL", securityName: "Apple Inc.", quantity: "100", price: "192.45", totalAmount: "19,245.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Moderate", solicited: "Solicited", discretion: "Discretionary", notes: "" },
-  { id: nextId++, tradeDate: "2026-06-17", clientName: "Martinez, Carlos", accountNumber: "RWG-10087", accountType: "IRA", custodian: "Fidelity", tradeType: "Sell", assetClass: "Fixed Income – Corporate", ticker: "LQD", securityName: "iShares iBoxx $ Investment Grade Corp Bond ETF", quantity: "250", price: "107.22", totalAmount: "26,805.00", orderType: "Limit", limitPrice: "107.50", timeInForce: "GTC", settlement: "T+2", status: "Submitted", advisor: "Rex Russell", riskLevel: "Moderately Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "Client requested exit before rate announcement" },
-  { id: nextId++, tradeDate: "2026-06-16", clientName: "Johnson, Patricia", accountNumber: "RWG-10031", accountType: "Roth IRA", custodian: "Schwab", tradeType: "Buy", assetClass: "ETF", ticker: "VTI", securityName: "Vanguard Total Stock Market ETF", quantity: "50", price: "234.10", totalAmount: "11,705.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Aggressive", solicited: "Unsolicited", discretion: "Discretionary", notes: "" },
+  { id: nextId++, tradeDate: "2026-06-17", clientName: "Thompson, Robert & Linda", lastName: "Thompson", firstName: "Robert & Linda", middleName: "", accountNumber: "RWG-10042", accountType: "Joint", custodian: "Schwab", tradeType: "Buy", assetClass: "Equity – Domestic", ticker: "AAPL", securityName: "Apple Inc.", quantity: "100", price: "192.45", totalAmount: "19,245.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Moderate", solicited: "Solicited", discretion: "Discretionary", notes: "" },
+  { id: nextId++, tradeDate: "2026-06-17", clientName: "Martinez, Carlos", lastName: "Martinez", firstName: "Carlos", middleName: "", accountNumber: "RWG-10087", accountType: "IRA", custodian: "Fidelity", tradeType: "Sell", assetClass: "Fixed Income – Corporate", ticker: "LQD", securityName: "iShares iBoxx $ Investment Grade Corp Bond ETF", quantity: "250", price: "107.22", totalAmount: "26,805.00", orderType: "Limit", limitPrice: "107.50", timeInForce: "GTC", settlement: "T+2", status: "Submitted", advisor: "Rex Russell", riskLevel: "Moderately Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "Client requested exit before rate announcement" },
+  { id: nextId++, tradeDate: "2026-06-16", clientName: "Johnson, Patricia", lastName: "Johnson", firstName: "Patricia", middleName: "", accountNumber: "RWG-10031", accountType: "Roth IRA", custodian: "Schwab", tradeType: "Buy", assetClass: "ETF", ticker: "VTI", securityName: "Vanguard Total Stock Market ETF", quantity: "50", price: "234.10", totalAmount: "11,705.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Aggressive", solicited: "Unsolicited", discretion: "Discretionary", notes: "" },
 ];
 
 function SelectField({ label, value, onChange, options, required }) {
@@ -449,15 +452,18 @@ export default function TradeBlotter() {
   };
 
   const handleSave = () => {
-    if (!form.clientName || !form.ticker || form.tradeType === "Select..." || form.accountType === "Select...") {
+    if (!form.lastName.trim() || !form.firstName.trim() || !form.ticker || form.tradeType === "Select..." || form.accountType === "Select...") {
       showToast("Please fill in all required fields.", COLORS.accentRed);
       return;
     }
+    const middle = form.middleName.trim();
+    const clientName = `${form.lastName.trim()}, ${form.firstName.trim()}${middle ? " " + middle : ""}`;
+    const record = { ...form, clientName };
     if (editId !== null) {
-      setTrades(ts => ts.map(t => t.id === editId ? { ...form, id: editId } : t));
+      setTrades(ts => ts.map(t => t.id === editId ? { ...record, id: editId } : t));
       showToast("Trade updated successfully.");
     } else {
-      setTrades(ts => [{ ...form, id: nextId++ }, ...ts]);
+      setTrades(ts => [{ ...record, id: nextId++ }, ...ts]);
       showToast("Trade entered successfully.");
     }
     setForm(initialForm);
@@ -466,7 +472,7 @@ export default function TradeBlotter() {
   };
 
   const handleEdit = (trade) => {
-    setForm({ ...trade });
+    setForm({ ...initialForm, ...trade });
     setEditId(trade.id);
     setView("entry");
     setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
@@ -694,7 +700,11 @@ export default function TradeBlotter() {
               {/* Section: Client & Account */}
               <Section title="Client & Account" icon="👤">
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <InputField label="Client Name" value={form.clientName} onChange={setField("clientName")} placeholder="Last, First" required />
+                  <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+                    <InputField label="Last Name" value={form.lastName} onChange={setField("lastName")} placeholder="Last name" required />
+                    <InputField label="First Name" value={form.firstName} onChange={setField("firstName")} placeholder="First name" required />
+                    <InputField label="Middle" value={form.middleName} onChange={setField("middleName")} placeholder="Middle name" />
+                  </div>
                   <InputField label="Account Number" value={form.accountNumber} onChange={setField("accountNumber")} placeholder="" required />
                   <SelectField label="Account Type" value={form.accountType} onChange={setField("accountType")} options={ACCOUNT_TYPES} required />
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
