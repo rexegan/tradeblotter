@@ -69,24 +69,6 @@ const PRODUCT_TYPES = [
   "Other",
 ];
 
-const INSURANCE_PRODUCTS = [
-  "Fixed Annuity",
-  "Fixed Indexed Annuity (FIA)",
-  "Variable Annuity",
-  "RILA – Registered Index-Linked Annuity",
-  "Immediate Annuity (SPIA)",
-  "Deferred Income Annuity (DIA)",
-  "Multi-Year Guaranteed Annuity (MYGA)",
-  "Long-Term Care Insurance",
-  "Life Insurance – Term",
-  "Life Insurance – Whole Life",
-  "Life Insurance – Universal Life",
-  "Life Insurance – Indexed Universal Life (IUL)",
-  "Life Insurance – Variable Universal Life (VUL)",
-  "Disability Income Insurance",
-  "Medicare Supplement",
-];
-
 const CARRIER_MAP = {
   "Fixed Annuity": [
     "Allianz Life", "American Equity", "American National", "Athene Annuity",
@@ -339,6 +321,60 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
 ];
 
+const INS_GROUPS = [
+  { label: "Date & Client Information", span: 4 },
+  { label: "Current Investment Information", span: 4 },
+  { label: "New Investment Information", span: 25 },
+];
+
+const INS_COLUMNS = [
+  { key: "date", label: "Date", w: 95 },
+  { key: "lastName", label: "Last Name", w: 110 },
+  { key: "middleInitial", label: "Int", w: 45 },
+  { key: "firstName", label: "First Name", w: 130 },
+  { key: "fundsComingFrom", label: "Funds Coming From", w: 130 },
+  { key: "currentAccountType", label: "Account Type", w: 110 },
+  { key: "currentAssetClass", label: "Asset Class", w: 110 },
+  { key: "currentPolicyNumber", label: "Policy or Account #", w: 140 },
+  { key: "receivingFirm", label: "Receiving Firm", w: 120 },
+  { key: "product", label: "Product", w: 110 },
+  { key: "ticker", label: "Ticker Symbol", w: 100 },
+  { key: "newAccountType", label: "Account Type", w: 110 },
+  { key: "newAssetClass", label: "Asset Class", w: 110 },
+  { key: "fundingMethod", label: "Funding Method", w: 110 },
+  { key: "checkNumber", label: "Check #", w: 90 },
+  { key: "fboCheck", label: "FBO Check", w: 90 },
+  { key: "dateSubmitted", label: "Date Submitted", w: 105 },
+  { key: "docsReceived", label: "Docs Rec'd", w: 100 },
+  { key: "trackingNumber", label: "Overnight Tracking #", w: 140 },
+  { key: "followUp", label: "Follow-up", w: 100 },
+  { key: "dateFunded", label: "Date Funded", w: 100 },
+  { key: "newPolicyNumber", label: "New Policy or Account #", w: 160 },
+  { key: "bankDraft", label: "Bank Draft", w: 90 },
+  { key: "draftStartDate", label: "Draft Start Date", w: 110 },
+  { key: "monthlyAmount", label: "Monthly Amount", w: 110 },
+  { key: "datePolicyDelivered", label: "Date Policy Delivered", w: 140 },
+  { key: "commissionPaidDate", label: "Commission Paid Date", w: 145 },
+  { key: "crmUpdated", label: "CRM Updated", w: 105 },
+  { key: "openingAmount", label: "Opening Amount", w: 115 },
+  { key: "monthlyTotal", label: "Monthly Total", w: 105 },
+  { key: "ytdTotal", label: "Year to Date Total", w: 125 },
+  { key: "eMoney", label: "eMoney", w: 90 },
+  { key: "notes", label: "Notes", w: 220 },
+];
+
+let nextInsId = 1;
+
+const SAMPLE_INSURANCE = [
+  { id: nextInsId++, date: "7/6/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", product: "529", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "7/6/22", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
+  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", crmUpdated: "1/15/24", openingAmount: "$200,000", ytdTotal: "$200,000" },
+];
+
+const money = (s) => {
+  const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
+  return isNaN(n) ? 0 : n;
+};
+
 function SelectField({ label, value, onChange, options, required }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -406,6 +442,20 @@ export default function TradeBlotter() {
   const [editId, setEditId] = useState(null);
   const [toast, setToast] = useState(null);
   const formRef = useRef(null);
+
+  const [insRecords, setInsRecords] = useState(SAMPLE_INSURANCE);
+  const [insSearch, setInsSearch] = useState("");
+
+  const updateIns = (id, key, val) => setInsRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
+  const addIns = () => setInsRecords(rs => [{ id: nextInsId++, date: new Date().toLocaleDateString("en-US") }, ...rs]);
+  const removeIns = (id) => {
+    setInsRecords(rs => rs.filter(r => r.id !== id));
+    showToast("Record removed.", COLORS.accentRed);
+  };
+
+  const insFiltered = insRecords.filter(r =>
+    !insSearch || Object.values(r).join(" ").toLowerCase().includes(insSearch.toLowerCase())
+  );
 
   const [settings, setSettings] = useState({
     firmName: "Russell Wealth Group",
@@ -506,11 +556,7 @@ export default function TradeBlotter() {
     setTrades(ts => ts.map(t => t.id === id ? { ...t, status } : t));
   };
 
-  const baseTrades = view === "insurance"
-    ? trades.filter(t => INSURANCE_PRODUCTS.includes(t.productType))
-    : trades;
-
-  const filtered = baseTrades.filter(t => {
+  const filtered = trades.filter(t => {
     const matchSearch = !search || [t.clientName, t.ticker, t.accountNumber, t.securityName].join(" ").toLowerCase().includes(search.toLowerCase());
     const matchStatus = filterStatus === "All" || t.status === filterStatus;
     const matchType = filterType === "All" || t.tradeType === filterType;
@@ -593,14 +639,14 @@ export default function TradeBlotter() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
         {/* Summary Cards */}
-        {(view === "blotter" || view === "insurance") && (
+        {view === "blotter" && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
             {[
               { label: "Total Trades", value: filtered.length, color: COLORS.accent },
               { label: "Total Value", value: "$" + totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: COLORS.accentGold },
-              { label: "Filled", value: baseTrades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
-              { label: "Pending / Submitted", value: baseTrades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
-              { label: "Cancelled / Rejected", value: baseTrades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
+              { label: "Filled", value: trades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
+              { label: "Pending / Submitted", value: trades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
+              { label: "Cancelled / Rejected", value: trades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
             ].map(c => (
               <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
                 <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
@@ -611,7 +657,7 @@ export default function TradeBlotter() {
         )}
 
         {/* BLOTTER VIEW */}
-        {(view === "blotter" || view === "insurance") && (
+        {view === "blotter" && (
           <>
             {/* Filters */}
             <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
@@ -696,6 +742,87 @@ export default function TradeBlotter() {
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
                           <button onClick={() => handleEdit(t)} style={{ background: COLORS.accent + "22", border: `1px solid ${COLORS.accent}44`, borderRadius: 5, color: COLORS.accent, padding: "4px 10px", fontSize: 11, cursor: "pointer", marginRight: 6, fontWeight: 600 }}>Edit</button>
                           <button onClick={() => handleDelete(t.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* INSURANCE BLOTTER */}
+        {view === "insurance" && (
+          <>
+            {/* Summary Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
+              {[
+                { label: "Records", value: insFiltered.length, color: COLORS.accent },
+                { label: "Opening Amounts", value: "$" + insFiltered.reduce((s, r) => s + money(r.openingAmount), 0).toLocaleString("en-US"), color: COLORS.accentGold },
+                { label: "Monthly Totals", value: "$" + insFiltered.reduce((s, r) => s + money(r.monthlyTotal) + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
+                { label: "Year to Date", value: "$" + insFiltered.reduce((s, r) => s + money(r.ytdTotal), 0).toLocaleString("en-US"), color: COLORS.accentGreen },
+              ].map(c => (
+                <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Toolbar */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+              <input
+                placeholder="🔍  Search name, product, policy #..."
+                value={insSearch}
+                onChange={e => setInsSearch(e.target.value)}
+                style={{
+                  background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
+                  color: COLORS.text, padding: "8px 12px", fontSize: 13, outline: "none", width: 280
+                }}
+              />
+              <button onClick={addIns}
+                style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: COLORS.primary, color: "#fff", border: `1px solid ${COLORS.primary}` }}>
+                + Add Record
+              </button>
+              <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
+                {insFiltered.length} record{insFiltered.length !== 1 ? "s" : ""} · click any cell to edit
+              </div>
+            </div>
+
+            {/* Spreadsheet Table */}
+            <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ borderCollapse: "collapse", tableLayout: "fixed" }}>
+                  <thead>
+                    <tr>
+                      {INS_GROUPS.map(g => (
+                        <th key={g.label} colSpan={g.span} style={{ padding: "8px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", background: "#f4f4f5", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, whiteSpace: "nowrap" }}>{g.label}</th>
+                      ))}
+                      <th rowSpan={2} style={{ width: 44, background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }} />
+                    </tr>
+                    <tr style={{ background: COLORS.bgRow }}>
+                      {INS_COLUMNS.map(c => (
+                        <th key={c.key} style={{ width: c.w, padding: "8px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.05em", borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal" }}>{c.label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {insFiltered.length === 0 ? (
+                      <tr><td colSpan={INS_COLUMNS.length + 1} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.</td></tr>
+                    ) : insFiltered.map((r, i) => (
+                      <tr key={r.id} style={{ background: i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard }}>
+                        {INS_COLUMNS.map(c => (
+                          <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}55`, borderRight: `1px solid ${COLORS.border}33` }}>
+                            <input
+                              value={r[c.key] ?? ""}
+                              onChange={e => updateIns(r.id, c.key, e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
+                            />
+                          </td>
+                        ))}
+                        <td style={{ padding: "0 8px", borderBottom: `1px solid ${COLORS.border}55`, textAlign: "center" }}>
+                          <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
                         </td>
                       </tr>
                     ))}
