@@ -1,4 +1,4 @@
-import { useState, useRef, Fragment } from "react";
+import { useState, useRef } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -319,12 +319,6 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-17", clientName: "Martinez, Carlos", lastName: "Martinez", firstName: "Carlos", middleName: "", accountNumber: "RWG-10087", accountType: "IRA", custodian: "Fidelity", tradeType: "Sell", assetClass: "Fixed Income – Corporate", ticker: "LQD", securityName: "iShares iBoxx $ Investment Grade Corp Bond ETF", quantity: "250", price: "107.22", totalAmount: "26,805.00", orderType: "Limit", limitPrice: "107.50", timeInForce: "GTC", settlement: "T+2", status: "Submitted", advisor: "Rex Russell", riskLevel: "Moderately Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "Client requested exit before rate announcement" },
   { id: nextId++, tradeDate: "2026-06-16", clientName: "Johnson, Patricia", lastName: "Johnson", firstName: "Patricia", middleName: "", accountNumber: "RWG-10031", accountType: "Roth IRA", custodian: "Schwab", tradeType: "Buy", assetClass: "ETF", ticker: "VTI", securityName: "Vanguard Total Stock Market ETF", quantity: "50", price: "234.10", totalAmount: "11,705.00", orderType: "Market", timeInForce: "Day", settlement: "T+1", status: "Filled", advisor: "Rex Russell", riskLevel: "Aggressive", solicited: "Unsolicited", discretion: "Discretionary", notes: "" },
   { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
-];
-
-const INS_GROUPS = [
-  { label: "Date & Client Information", span: 4 },
-  { label: "Current Investment Information", span: 4 },
-  { label: "New Investment Information", span: 25 },
 ];
 
 const INS_COLUMNS = [
@@ -830,64 +824,63 @@ export default function TradeBlotter() {
               </div>
             </div>
 
-            {/* Spreadsheet Table */}
-            <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", minWidth: 1150, borderCollapse: "collapse", tableLayout: "fixed" }}>
-                  <thead>
-                    <tr>
-                      {INS_GROUPS.map(g => (
-                        <th key={g.label} colSpan={g.label === "New Investment Information" ? 9 : g.span} style={{ padding: "8px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", background: "#f4f4f5", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}`, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{g.label}</th>
-                      ))}
-                      <th rowSpan={3} style={{ width: 44, background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }} />
-                    </tr>
-                    <tr style={{ background: COLORS.bgRow }}>
-                      {INS_TOP.map(c => (
-                        <th key={c.key} style={{ width: c.key === "middleInitial" ? 40 : c.key === "date" ? 78 : undefined, padding: "7px 8px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
-                      ))}
-                    </tr>
-                    <tr style={{ background: "#f4f4f5" }}>
-                      {INS_BOTTOM.map(c => (
-                        <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "7px 8px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {insFiltered.length === 0 ? (
-                      <tr><td colSpan={INS_TOP.length + 1} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.</td></tr>
-                    ) : insFiltered.map(r => (
-                      <Fragment key={r.id}>
-                        <tr>
-                          {INS_TOP.map(c => (
-                            <td key={c.key} style={{ padding: 0, background: COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}33`, borderRight: `1px solid ${COLORS.border}33` }}>
-                              <input
-                                value={r[c.key] ?? ""}
-                                onChange={e => updateIns(r.id, c.key, e.target.value)}
-                                style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 8px", fontSize: 12, color: COLORS.text, outline: "none" }}
-                              />
-                            </td>
-                          ))}
-                          <td rowSpan={2} style={{ padding: "0 8px", borderBottom: `2px solid ${COLORS.border}`, textAlign: "center", background: COLORS.bgCard }}>
-                            <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "3px 8px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
-                          </td>
-                        </tr>
-                        <tr>
-                          {INS_BOTTOM.map(c => (
-                            <td key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: 0, background: COLORS.bgRowAlt, borderBottom: `2px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
-                              <input
-                                value={r[c.key] ?? ""}
-                                onChange={e => updateIns(r.id, c.key, e.target.value)}
-                                style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "8px 8px", fontSize: 12, color: COLORS.text, outline: "none" }}
-                              />
-                            </td>
-                          ))}
-                        </tr>
-                      </Fragment>
-                    ))}
-                  </tbody>
-                </table>
+            {/* Records — one card per trade, two sleeves each */}
+            {insFiltered.length === 0 ? (
+              <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: COLORS.textMuted }}>
+                No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
               </div>
-            </div>
+            ) : insFiltered.map(r => (
+              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
+                {/* Record header bar */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.bgRow, borderBottom: `1px solid ${COLORS.border}` }}>
+                  <span style={{ fontWeight: 700, fontSize: 13 }}>
+                    {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                    {r.date ? <span style={{ fontWeight: 400, color: COLORS.textMuted }}> · {r.date}</span> : null}
+                  </span>
+                  <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", minWidth: 1150, borderCollapse: "collapse", tableLayout: "fixed" }}>
+                    <tbody>
+                      {/* Sleeve 1: headers then entry line */}
+                      <tr style={{ background: "#f4f4f5" }}>
+                        {INS_TOP.map(c => (
+                          <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                        ))}
+                      </tr>
+                      <tr>
+                        {INS_TOP.map(c => (
+                          <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                            <input
+                              value={r[c.key] ?? ""}
+                              onChange={e => updateIns(r.id, c.key, e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                      {/* Sleeve 2: headers then entry line */}
+                      <tr style={{ background: "#f4f4f5" }}>
+                        {INS_BOTTOM.map(c => (
+                          <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: `6px solid ${COLORS.bg}`, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                        ))}
+                      </tr>
+                      <tr>
+                        {INS_BOTTOM.map(c => (
+                          <td key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: 0, borderRight: `1px solid ${COLORS.border}33` }}>
+                            <input
+                              value={r[c.key] ?? ""}
+                              onChange={e => updateIns(r.id, c.key, e.target.value)}
+                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
+                            />
+                          </td>
+                        ))}
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
           </>
         )}
 
