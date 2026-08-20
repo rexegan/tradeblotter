@@ -7,8 +7,9 @@ const COLORS = {
   bgRow: "#fafafa",
   bgRowAlt: "#fafafa",
   border: "#e4e4e7",
-  primary: "#18181b",
-  primaryHover: "#27272a",
+  primary: "#0f2a52",
+  primaryHover: "#0b1f3d",
+  navyMuted: "#b9c6dd",
   accent: "#2563eb",
   accentHover: "#1d4ed8",
   accentGold: "#d97706",
@@ -618,15 +619,15 @@ export default function TradeBlotter() {
       )}
 
       {/* Header */}
-      <div style={{ background: COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}`, padding: "0 24px" }}>
+      <div style={{ background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}`, padding: "0 24px" }}>
         <div style={{ maxWidth: 1400, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", height: 64 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 8, background: COLORS.primary, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 8, background: "#fff", color: COLORS.primary, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16 }}>
               RW
             </div>
             <div>
-              <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: "0.01em" }}>Russell Wealth Group</div>
-              <div style={{ fontSize: 11, color: COLORS.textMuted, letterSpacing: "0.06em" }}>TRADE BLOTTER</div>
+              <div style={{ fontWeight: 700, fontSize: 16, letterSpacing: "0.01em", color: "#fff" }}>Russell Wealth Group</div>
+              <div style={{ fontSize: 11, color: COLORS.navyMuted, letterSpacing: "0.06em" }}>TRADE BLOTTER</div>
             </div>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
@@ -634,36 +635,36 @@ export default function TradeBlotter() {
               onClick={() => { setView("blotter"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "blotter" ? COLORS.primary : "transparent",
-                color: view === "blotter" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "blotter" ? COLORS.primary : COLORS.border}`
+                background: view === "blotter" ? "#fff" : "transparent",
+                color: view === "blotter" ? COLORS.primary : COLORS.navyMuted,
+                border: `1px solid ${view === "blotter" ? "#fff" : "rgba(255,255,255,0.35)"}`
               }}
             >📋 BD Blotter</button>
             <button
               onClick={() => { setView("insurance"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "insurance" ? COLORS.primary : "transparent",
-                color: view === "insurance" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "insurance" ? COLORS.primary : COLORS.border}`
+                background: view === "insurance" ? "#fff" : "transparent",
+                color: view === "insurance" ? COLORS.primary : COLORS.navyMuted,
+                border: `1px solid ${view === "insurance" ? "#fff" : "rgba(255,255,255,0.35)"}`
               }}
             >🛡️ Insurance Blotter</button>
             <button
               onClick={() => { setView("entry"); setForm(initialForm); setEditId(null); }}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "entry" ? COLORS.primary : "transparent",
-                color: view === "entry" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "entry" ? COLORS.primary : COLORS.border}`
+                background: view === "entry" ? "#fff" : "transparent",
+                color: view === "entry" ? COLORS.primary : COLORS.navyMuted,
+                border: `1px solid ${view === "entry" ? "#fff" : "rgba(255,255,255,0.35)"}`
               }}
             >+ New Trade</button>
             <button
               onClick={() => setView("settings")}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "settings" ? COLORS.primary : "transparent",
-                color: view === "settings" ? "#fff" : COLORS.textMuted,
-                border: `1px solid ${view === "settings" ? COLORS.primary : COLORS.border}`
+                background: view === "settings" ? "#fff" : "transparent",
+                color: view === "settings" ? COLORS.primary : COLORS.navyMuted,
+                border: `1px solid ${view === "settings" ? "#fff" : "rgba(255,255,255,0.35)"}`
               }}
             >⚙️ Settings</button>
           </div>
@@ -726,7 +727,7 @@ export default function TradeBlotter() {
                   <thead>
                     <tr style={{ background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }}>
                       {["Date", "Client / Account", "Type", "Security", "Qty", "Price", "Total", "Order", "Status", "Actions"].map(h => (
-                        <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>{h}</th>
+                        <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -832,12 +833,12 @@ export default function TradeBlotter() {
             ) : insFiltered.map(r => (
               <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
                 {/* Record header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.bgRow, borderBottom: `1px solid ${COLORS.border}` }}>
-                  <span style={{ fontWeight: 700, fontSize: 13 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
-                    {r.date ? <span style={{ fontWeight: 400, color: COLORS.textMuted }}> · {r.date}</span> : null}
+                    {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
                   </span>
-                  <button onClick={() => removeIns(r.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
+                  <button onClick={() => removeIns(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", minWidth: 1150, borderCollapse: "collapse", tableLayout: "fixed" }}>
@@ -845,7 +846,7 @@ export default function TradeBlotter() {
                       {/* Sleeve 1: headers then entry line */}
                       <tr style={{ background: "#f4f4f5" }}>
                         {INS_TOP.map(c => (
-                          <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                          <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                         ))}
                       </tr>
                       <tr>
@@ -862,7 +863,7 @@ export default function TradeBlotter() {
                       {/* Sleeve 2: headers then entry line */}
                       <tr style={{ background: "#f4f4f5" }}>
                         {INS_BOTTOM.map(c => (
-                          <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: `6px solid ${COLORS.bg}`, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                          <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: `6px solid ${COLORS.bg}`, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                         ))}
                       </tr>
                       <tr>
@@ -888,11 +889,11 @@ export default function TradeBlotter() {
         {view === "entry" && (
           <div ref={formRef} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
             {/* Form Header */}
-            <div style={{ background: COLORS.bgRow, padding: "16px 24px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div style={{ background: COLORS.primary, padding: "16px 24px", borderBottom: `1px solid ${COLORS.primaryHover}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: 16 }}>{editId !== null ? "Edit Trade" : "New Trade Entry"}</div>
+                <div style={{ fontWeight: 700, fontSize: 16, color: "#fff" }}>{editId !== null ? "Edit Trade" : "New Trade Entry"}</div>
               </div>
-              <div style={{ fontSize: 12, color: COLORS.textMuted }}>{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
+              <div style={{ fontSize: 12, color: COLORS.navyMuted }}>{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
             </div>
 
             <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 28 }}>
@@ -1223,9 +1224,9 @@ function Grid({ cols = 3, children }) {
 function SettingsCard({ title, icon, children }) {
   return (
     <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
-      <div style={{ background: COLORS.bgRow, padding: "12px 20px", borderBottom: `1px solid ${COLORS.border}`, display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ background: COLORS.primary, padding: "12px 20px", borderBottom: `1px solid ${COLORS.primaryHover}`, display: "flex", alignItems: "center", gap: 10 }}>
         <span style={{ fontSize: 16 }}>{icon}</span>
-        <span style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.text }}>{title}</span>
+        <span style={{ fontWeight: 700, fontSize: 14, textTransform: "uppercase", letterSpacing: "0.08em", color: "#fff" }}>{title}</span>
       </div>
       <div style={{ padding: 20 }}>{children}</div>
     </div>
