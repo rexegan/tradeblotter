@@ -322,25 +322,39 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
 ];
 
+const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank / Credit Union", "Other"];
+const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "Custodial (UTMA)", "529", "HSA", "Annuity", "Life Insurance", "Other"];
+const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities", "CDs", "Money Market", "Cash", "Real Estate", "Alternatives", "Life Insurance", "Other"];
+const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
+const INS_DOCS_STATUS = ["IGO", "NIGO", "In Process", "Needs Immediate Attention", "Needs Attention"];
+
+const trackingUrl = (raw) => {
+  const t = String(raw || "").replace(/\s+/g, "");
+  if (/^1Z/i.test(t)) return "https://www.ups.com/track?tracknum=" + encodeURIComponent(t);
+  if (/^\d{20,22}$/.test(t)) return "https://tools.usps.com/go/TrackConfirmAction?tLabels=" + encodeURIComponent(t);
+  if (/^\d{12}(\d{3})?$/.test(t)) return "https://www.fedex.com/fedextrack/?trknbr=" + encodeURIComponent(t);
+  return "https://www.google.com/search?q=" + encodeURIComponent("track package " + t);
+};
+
 const INS_COLUMNS = [
   { key: "date", label: "Date", w: 95 },
   { key: "lastName", label: "Last Name", w: 110 },
   { key: "middleInitial", label: "Middle Initial", w: 90 },
   { key: "firstName", label: "First Name", w: 130 },
-  { key: "fundsComingFrom", label: "Funds Coming From", w: 130 },
-  { key: "currentAccountType", label: "Account Type", w: 110 },
-  { key: "currentAssetClass", label: "Asset Class", w: 110 },
+  { key: "fundsComingFrom", label: "Funds Coming From", w: 130, options: INS_INSTITUTIONS },
+  { key: "currentAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
+  { key: "currentAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "currentPolicyNumber", label: "Policy or Account #", w: 140 },
   { key: "receivingFirm", label: "Receiving Firm", w: 120 },
   { key: "product", label: "Product", w: 110 },
   { key: "ticker", label: "Ticker Symbol", w: 100 },
-  { key: "newAccountType", label: "Account Type", w: 110 },
-  { key: "newAssetClass", label: "Asset Class", w: 110 },
-  { key: "fundingMethod", label: "Funding Method", w: 110 },
+  { key: "newAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
+  { key: "newAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
+  { key: "fundingMethod", label: "Funding Method", w: 110, options: INS_FUNDING_METHODS },
   { key: "checkNumber", label: "Check #", w: 90 },
   { key: "fboCheck", label: "FBO Check", w: 90 },
   { key: "dateSubmitted", label: "Date Submitted", w: 105 },
-  { key: "docsReceived", label: "Docs Rec'd", w: 100 },
+  { key: "docsReceived", label: "Docs Rec'd", w: 100, options: INS_DOCS_STATUS },
   { key: "trackingNumber", label: "Overnight Tracking #", w: 140 },
   { key: "followUp", label: "Follow-up", w: 100 },
   { key: "dateFunded", label: "Date Funded", w: 100 },
@@ -362,7 +376,7 @@ let nextInsId = 1;
 
 const SAMPLE_INSURANCE = [
   { id: nextInsId++, date: "7/6/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", product: "529", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "7/6/22", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
-  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
+  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "IGO", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
 ];
 
 const INS_ROWS = [INS_COLUMNS.slice(0, 11), INS_COLUMNS.slice(11, 22), INS_COLUMNS.slice(22)];
@@ -852,11 +866,34 @@ export default function TradeBlotter() {
                           <tr>
                             {cols.map(c => (
                               <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
-                                <input
-                                  value={r[c.key] ?? ""}
-                                  onChange={e => updateIns(r.id, c.key, e.target.value)}
-                                  style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
-                                />
+                                {c.options ? (
+                                  <select
+                                    value={r[c.key] ?? ""}
+                                    onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "10px 6px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none", cursor: "pointer" }}
+                                  >
+                                    <option value=""></option>
+                                    {c.options.map(o => <option key={o} value={o}>{o}</option>)}
+                                  </select>
+                                ) : c.key === "trackingNumber" ? (
+                                  <div style={{ display: "flex", alignItems: "center" }}>
+                                    <input
+                                      value={r[c.key] ?? ""}
+                                      onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 6px 11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                    />
+                                    {(r.trackingNumber || "").trim() !== "" && (
+                                      <a href={trackingUrl(r.trackingNumber)} target="_blank" rel="noopener noreferrer" title="Track this shipment"
+                                        style={{ padding: "0 8px", fontSize: 14, fontWeight: 700, color: COLORS.accent, textDecoration: "none" }}>↗</a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <input
+                                    value={r[c.key] ?? ""}
+                                    onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                  />
+                                )}
                               </td>
                             ))}
                           </tr>
