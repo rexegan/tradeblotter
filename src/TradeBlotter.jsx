@@ -1,4 +1,4 @@
-import { useState, useRef, Fragment } from "react";
+import { useState, useRef, useEffect, Fragment } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -453,8 +453,19 @@ function Badge({ label, color }) {
   );
 }
 
+const STORAGE_KEY = "rwg_tradeblotter";
+
+const loadStore = () => {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || null; } catch { return null; }
+};
+const STORED = loadStore();
+
 export default function TradeBlotter() {
-  const [trades, setTrades] = useState(SAMPLE_TRADES);
+  const [trades, setTrades] = useState(() => {
+    const t = STORED?.trades || SAMPLE_TRADES;
+    nextId = t.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    return t;
+  });
   const [form, setForm] = useState(initialForm);
   const [view, setView] = useState("blotter"); // blotter | entry | settings
   const [search, setSearch] = useState("");
@@ -465,7 +476,11 @@ export default function TradeBlotter() {
   const [confirmDlg, setConfirmDlg] = useState(null);
   const formRef = useRef(null);
 
-  const [insRecords, setInsRecords] = useState(SAMPLE_INSURANCE);
+  const [insRecords, setInsRecords] = useState(() => {
+    const r = STORED?.insRecords || SAMPLE_INSURANCE;
+    nextInsId = r.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    return r;
+  });
   const [insSearch, setInsSearch] = useState("");
 
   const updateIns = (id, key, val) => setInsRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
@@ -484,7 +499,7 @@ export default function TradeBlotter() {
     !insSearch || Object.values(r).join(" ").toLowerCase().includes(insSearch.toLowerCase())
   );
 
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState(STORED?.settings || {
     firmName: "Russell Wealth Group",
     firmCRD: "", firmAddress: "", firmCity: "", firmState: "", firmZip: "",
     firmPhone: "", firmEmail: "", firmWebsite: "",
@@ -507,6 +522,17 @@ export default function TradeBlotter() {
   });
 
   const setSetting = (k) => (v) => setSettings(s => ({ ...s, [k]: v }));
+
+  const [savedAt, setSavedAt] = useState(null);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ trades, insRecords, settings }));
+        setSavedAt(new Date());
+      } catch {}
+    }, 400);
+    return () => clearTimeout(t);
+  }, [trades, insRecords, settings]);
 
   const updateAdvisor = (i, field, val) => setSettings(s => {
     const advisors = [...s.advisors];
@@ -653,7 +679,10 @@ export default function TradeBlotter() {
               <div style={{ fontSize: 11, color: COLORS.navyMuted, letterSpacing: "0.06em" }}>TRADE BLOTTER</div>
             </div>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div title="Everything you enter is saved automatically in this browser" style={{ padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700, color: "#7ee2a8", border: "1px solid rgba(126,226,168,0.4)", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+              {savedAt ? "✓ DATA SAVED · " + savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "AUTOSAVE ON"}
+            </div>
             <button
               onClick={() => { setView("blotter"); setForm(initialForm); setEditId(null); }}
               style={{
