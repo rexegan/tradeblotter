@@ -364,10 +364,8 @@ const INS_COLUMNS = [
   { key: "fundingMethod", label: "Funding Method", w: 110, options: INS_FUNDING_METHODS },
   { key: "checkNumber", label: "Check #", w: 90 },
   { key: "fboCheck", label: "FBO Check", w: 90 },
-  { key: "dateSubmitted", label: "Date Submitted", w: 105, type: "date" },
   { key: "docsReceived", label: "Docs Rec'd", w: 100, options: INS_DOCS_STATUS },
   { key: "trackingNumber", label: "Overnight Tracking #", w: 140 },
-  { key: "followUp", label: "Follow-up", w: 100 },
   { key: "dateFunded", label: "Date Funded", w: 100, type: "date" },
   { key: "newPolicyNumber", label: "New Policy or Account #", w: 160 },
   { key: "bankDraft", label: "Bank Draft", w: 90, options: ["Yes", "No"] },
@@ -376,9 +374,6 @@ const INS_COLUMNS = [
   { key: "datePolicyDelivered", label: "Date Policy Delivered", w: 140, type: "date" },
   { key: "commissionPaidDate", label: "Commission Paid Date", w: 145, type: "date" },
   { key: "crmUpdated", label: "CRM Updated", w: 105, type: "date" },
-  { key: "openingAmount", label: "Opening Amount", w: 115, type: "money" },
-  { key: "monthlyTotal", label: "Monthly Total", w: 105, type: "money" },
-  { key: "ytdTotal", label: "Year to Date Total", w: 125, type: "money" },
   { key: "eMoney", label: "eMoney", w: 90 },
   { key: "notes", label: "Notes", w: 220 },
 ];
@@ -386,11 +381,15 @@ const INS_COLUMNS = [
 let nextInsId = 1;
 
 const SAMPLE_INSURANCE = [
-  { id: nextInsId++, date: "07/06/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "07/06/2022", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
-  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", fundingMethod: "Wire", dateSubmitted: "12/01/2023", docsReceived: "IGO", commissionPaidDate: "01/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000", notes: "e2c Bond" },
+  { id: nextInsId++, date: "07/06/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "07/06/2022", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyAmount: "$200" },
+  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", fundingMethod: "Wire", docsReceived: "IGO", commissionPaidDate: "01/15/2024", notes: "e2c Bond – $200,000 opening" },
 ];
 
-const INS_ROWS = [INS_COLUMNS.slice(0, 10), INS_COLUMNS.slice(10, 21), INS_COLUMNS.slice(21)];
+const INS_ROWS = [
+  { cols: INS_COLUMNS.slice(0, 10), spans: { receivingFirm: 2 } },
+  { cols: INS_COLUMNS.slice(10, 19), spans: { trackingNumber: 3 } },
+  { cols: INS_COLUMNS.slice(19), spans: { notes: 4 } },
+];
 
 const money = (s) => {
   const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
@@ -818,9 +817,9 @@ export default function TradeBlotter() {
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
               {[
                 { label: "Records", value: insFiltered.length, color: COLORS.accent },
-                { label: "Opening Amounts", value: "$" + insFiltered.reduce((s, r) => s + money(r.openingAmount), 0).toLocaleString("en-US"), color: COLORS.accentGold },
-                { label: "Monthly Totals", value: "$" + insFiltered.reduce((s, r) => s + money(r.monthlyTotal) + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
-                { label: "Year to Date", value: "$" + insFiltered.reduce((s, r) => s + money(r.ytdTotal), 0).toLocaleString("en-US"), color: COLORS.accentGreen },
+                { label: "Monthly Amounts", value: "$" + insFiltered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
+                { label: "Funded", value: insFiltered.filter(r => (r.dateFunded || "").trim() !== "").length, color: COLORS.accentGreen },
+                { label: "Needs Attention", value: insFiltered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed },
               ].map(c => (
                 <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
                   <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
@@ -867,16 +866,16 @@ export default function TradeBlotter() {
                 <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed" }}>
                     <tbody>
-                      {INS_ROWS.map((cols, bank) => (
+                      {INS_ROWS.map((row, bank) => (
                         <Fragment key={bank}>
                           <tr style={{ background: "#f4f4f5" }}>
-                            {cols.map((c, ci) => (
-                              <th key={c.key} colSpan={ci === cols.length - 1 ? 12 - cols.length : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                            {row.cols.map(c => (
+                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                             ))}
                           </tr>
                           <tr>
-                            {cols.map((c, ci) => (
-                              <td key={c.key} colSpan={ci === cols.length - 1 ? 12 - cols.length : 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                            {row.cols.map(c => (
+                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
                                 {c.options ? (
                                   <select
                                     value={r[c.key] ?? ""}
