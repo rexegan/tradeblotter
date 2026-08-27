@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, Fragment } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -325,7 +325,7 @@ const SAMPLE_TRADES = [
 const INS_COLUMNS = [
   { key: "date", label: "Date", w: 95 },
   { key: "lastName", label: "Last Name", w: 110 },
-  { key: "middleInitial", label: "Int", w: 45 },
+  { key: "middleInitial", label: "Middle Initial", w: 90 },
   { key: "firstName", label: "First Name", w: 130 },
   { key: "fundsComingFrom", label: "Funds Coming From", w: 130 },
   { key: "currentAccountType", label: "Account Type", w: 110 },
@@ -365,8 +365,7 @@ const SAMPLE_INSURANCE = [
   { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "12/1/2023", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
 ];
 
-const INS_TOP = INS_COLUMNS.slice(0, 17);
-const INS_BOTTOM = INS_COLUMNS.slice(17);
+const INS_ROWS = [INS_COLUMNS.slice(0, 11), INS_COLUMNS.slice(11, 22), INS_COLUMNS.slice(22)];
 
 const money = (s) => {
   const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
@@ -841,42 +840,28 @@ export default function TradeBlotter() {
                   <button onClick={() => removeIns(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
                 </div>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", minWidth: 1150, borderCollapse: "collapse", tableLayout: "fixed" }}>
+                  <table style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed" }}>
                     <tbody>
-                      {/* Sleeve 1: headers then entry line */}
-                      <tr style={{ background: "#f4f4f5" }}>
-                        {INS_TOP.map(c => (
-                          <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
-                        ))}
-                      </tr>
-                      <tr>
-                        {INS_TOP.map(c => (
-                          <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
-                            <input
-                              value={r[c.key] ?? ""}
-                              onChange={e => updateIns(r.id, c.key, e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
-                      {/* Sleeve 2: headers then entry line */}
-                      <tr style={{ background: "#f4f4f5" }}>
-                        {INS_BOTTOM.map(c => (
-                          <th key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: `6px solid ${COLORS.bg}`, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
-                        ))}
-                      </tr>
-                      <tr>
-                        {INS_BOTTOM.map(c => (
-                          <td key={c.key} colSpan={c.key === "notes" ? 2 : 1} style={{ padding: 0, borderRight: `1px solid ${COLORS.border}33` }}>
-                            <input
-                              value={r[c.key] ?? ""}
-                              onChange={e => updateIns(r.id, c.key, e.target.value)}
-                              style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 12, color: COLORS.text, outline: "none" }}
-                            />
-                          </td>
-                        ))}
-                      </tr>
+                      {INS_ROWS.map((cols, bank) => (
+                        <Fragment key={bank}>
+                          <tr style={{ background: "#f4f4f5" }}>
+                            {cols.map(c => (
+                              <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                            ))}
+                          </tr>
+                          <tr>
+                            {cols.map(c => (
+                              <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                                <input
+                                  value={r[c.key] ?? ""}
+                                  onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                  style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        </Fragment>
+                      ))}
                     </tbody>
                   </table>
                 </div>
