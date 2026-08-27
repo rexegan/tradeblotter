@@ -328,6 +328,18 @@ const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities
 const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
 const INS_DOCS_STATUS = ["IGO", "NIGO", "In Process", "Needs Immediate Attention", "Needs Attention"];
 
+const fmtDateInput = (v) => {
+  const d = String(v || "").replace(/\D/g, "").slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return d.slice(0, 2) + "/" + d.slice(2);
+  return d.slice(0, 2) + "/" + d.slice(2, 4) + "/" + d.slice(4);
+};
+
+const fmtDollarInput = (v) => {
+  const d = String(v || "").replace(/[^0-9]/g, "");
+  return d ? "$" + Number(d).toLocaleString("en-US") : "";
+};
+
 const trackingUrl = (raw) => {
   const t = String(raw || "").replace(/\s+/g, "");
   if (/^1Z/i.test(t)) return "https://www.ups.com/track?tracknum=" + encodeURIComponent(t);
@@ -337,7 +349,7 @@ const trackingUrl = (raw) => {
 };
 
 const INS_COLUMNS = [
-  { key: "date", label: "Date", w: 95 },
+  { key: "date", label: "Date", w: 95, type: "date" },
   { key: "lastName", label: "Last Name", w: 110 },
   { key: "middleInitial", label: "Middle Initial", w: 90 },
   { key: "firstName", label: "First Name", w: 130 },
@@ -345,29 +357,28 @@ const INS_COLUMNS = [
   { key: "currentAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
   { key: "currentAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "currentPolicyNumber", label: "Policy or Account #", w: 140 },
-  { key: "receivingFirm", label: "Receiving Firm", w: 120 },
-  { key: "product", label: "Product", w: 110 },
+  { key: "receivingFirm", label: "Receiving Firm", w: 120, options: INS_INSTITUTIONS },
   { key: "ticker", label: "Ticker Symbol", w: 100 },
   { key: "newAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
   { key: "newAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "fundingMethod", label: "Funding Method", w: 110, options: INS_FUNDING_METHODS },
   { key: "checkNumber", label: "Check #", w: 90 },
   { key: "fboCheck", label: "FBO Check", w: 90 },
-  { key: "dateSubmitted", label: "Date Submitted", w: 105 },
+  { key: "dateSubmitted", label: "Date Submitted", w: 105, type: "date" },
   { key: "docsReceived", label: "Docs Rec'd", w: 100, options: INS_DOCS_STATUS },
   { key: "trackingNumber", label: "Overnight Tracking #", w: 140 },
   { key: "followUp", label: "Follow-up", w: 100 },
-  { key: "dateFunded", label: "Date Funded", w: 100 },
+  { key: "dateFunded", label: "Date Funded", w: 100, type: "date" },
   { key: "newPolicyNumber", label: "New Policy or Account #", w: 160 },
-  { key: "bankDraft", label: "Bank Draft", w: 90 },
-  { key: "draftStartDate", label: "Draft Start Date", w: 110 },
-  { key: "monthlyAmount", label: "Monthly Amount", w: 110 },
-  { key: "datePolicyDelivered", label: "Date Policy Delivered", w: 140 },
-  { key: "commissionPaidDate", label: "Commission Paid Date", w: 145 },
-  { key: "crmUpdated", label: "CRM Updated", w: 105 },
-  { key: "openingAmount", label: "Opening Amount", w: 115 },
-  { key: "monthlyTotal", label: "Monthly Total", w: 105 },
-  { key: "ytdTotal", label: "Year to Date Total", w: 125 },
+  { key: "bankDraft", label: "Bank Draft", w: 90, options: ["Yes", "No"] },
+  { key: "draftStartDate", label: "Draft Start Date", w: 110, type: "date" },
+  { key: "monthlyAmount", label: "Monthly Amount", w: 110, type: "money" },
+  { key: "datePolicyDelivered", label: "Date Policy Delivered", w: 140, type: "date" },
+  { key: "commissionPaidDate", label: "Commission Paid Date", w: 145, type: "date" },
+  { key: "crmUpdated", label: "CRM Updated", w: 105, type: "date" },
+  { key: "openingAmount", label: "Opening Amount", w: 115, type: "money" },
+  { key: "monthlyTotal", label: "Monthly Total", w: 105, type: "money" },
+  { key: "ytdTotal", label: "Year to Date Total", w: 125, type: "money" },
   { key: "eMoney", label: "eMoney", w: 90 },
   { key: "notes", label: "Notes", w: 220 },
 ];
@@ -375,11 +386,11 @@ const INS_COLUMNS = [
 let nextInsId = 1;
 
 const SAMPLE_INSURANCE = [
-  { id: nextInsId++, date: "7/6/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", product: "529", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "7/6/22", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
-  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", receivingFirm: "e2c", product: "e2c Bond", fundingMethod: "Wire", dateSubmitted: "12/1/2023", docsReceived: "IGO", commissionPaidDate: "1/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000" },
+  { id: nextInsId++, date: "07/06/2022", lastName: "Cozart", firstName: "Wendy", receivingFirm: "John Hancock", newAccountType: "529", newAssetClass: "Mutual Funds", fundingMethod: "ACH", dateFunded: "07/06/2022", newPolicyNumber: "20778089", bankDraft: "Yes", monthlyTotal: "$200" },
+  { id: nextInsId++, date: "12/31/2023", lastName: "Jones", firstName: "Craig & Stephanie", fundingMethod: "Wire", dateSubmitted: "12/01/2023", docsReceived: "IGO", commissionPaidDate: "01/15/2024", openingAmount: "$200,000", monthlyTotal: "$200,000", notes: "e2c Bond" },
 ];
 
-const INS_ROWS = [INS_COLUMNS.slice(0, 11), INS_COLUMNS.slice(11, 22), INS_COLUMNS.slice(22)];
+const INS_ROWS = [INS_COLUMNS.slice(0, 10), INS_COLUMNS.slice(10, 21), INS_COLUMNS.slice(21)];
 
 const money = (s) => {
   const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
@@ -859,13 +870,13 @@ export default function TradeBlotter() {
                       {INS_ROWS.map((cols, bank) => (
                         <Fragment key={bank}>
                           <tr style={{ background: "#f4f4f5" }}>
-                            {cols.map(c => (
-                              <th key={c.key} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                            {cols.map((c, ci) => (
+                              <th key={c.key} colSpan={ci === cols.length - 1 ? 12 - cols.length : 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                             ))}
                           </tr>
                           <tr>
-                            {cols.map(c => (
-                              <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                            {cols.map((c, ci) => (
+                              <td key={c.key} colSpan={ci === cols.length - 1 ? 12 - cols.length : 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
                                 {c.options ? (
                                   <select
                                     value={r[c.key] ?? ""}
@@ -890,7 +901,8 @@ export default function TradeBlotter() {
                                 ) : (
                                   <input
                                     value={r[c.key] ?? ""}
-                                    onChange={e => updateIns(r.id, c.key, e.target.value)}
+                                    placeholder={c.type === "date" ? "MM/DD/YYYY" : undefined}
+                                    onChange={e => updateIns(r.id, c.key, c.type === "date" ? fmtDateInput(e.target.value) : c.type === "money" ? fmtDollarInput(e.target.value) : e.target.value)}
                                     style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
                                   />
                                 )}
