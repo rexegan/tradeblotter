@@ -893,7 +893,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                         <Fragment key={bank}>
                           <tr style={{ background: "#f4f4f5" }}>
                             {row.cols.map(c => (
-                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.primary, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
                             ))}
                           </tr>
                           <tr>
@@ -903,7 +903,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                                   <select
                                     value={r[c.key] ?? ""}
                                     onChange={e => onUpdate(r.id, c.key, e.target.value)}
-                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "10px 6px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none", cursor: "pointer" }}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "10px 6px", fontSize: 13, fontWeight: 700, color: "#000", outline: "none", cursor: "pointer" }}
                                   >
                                     <option value=""></option>
                                     {c.options.map(o => <option key={o} value={o}>{o}</option>)}
@@ -913,7 +913,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                                     <input
                                       value={r[c.key] ?? ""}
                                       onChange={e => onUpdate(r.id, c.key, e.target.value)}
-                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 6px 11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 6px 11px 10px", fontSize: 13, fontWeight: 700, color: "#000", outline: "none" }}
                                     />
                                     {(r.trackingNumber || "").trim() !== "" && (
                                       <a href={trackingUrl(r.trackingNumber)} target="_blank" rel="noopener noreferrer" title="Track this shipment"
@@ -925,7 +925,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                                     value={r[c.key] ?? ""}
                                     placeholder={c.type === "date" ? "MM/DD/YYYY" : undefined}
                                     onChange={e => onUpdate(r.id, c.key, c.type === "date" ? fmtDateInput(e.target.value) : c.type === "money" ? fmtDollarInput(e.target.value) : e.target.value)}
-                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 700, color: "#000", outline: "none" }}
                                   />
                                 )}
                               </td>
