@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, Fragment } from "react";
+import { useState, useEffect, Fragment } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -391,6 +391,13 @@ const INS_ROWS = [
   { cols: INS_COLUMNS.slice(19), spans: { notes: 4 } },
 ];
 
+let nextBdId = 1;
+
+const SAMPLE_BD = [
+  { id: nextBdId++, date: "06/17/2026", lastName: "Thompson", firstName: "Robert & Linda", fundsComingFrom: "Schwab", currentAccountType: "Joint", currentAssetClass: "Stocks", receivingFirm: "Fidelity", ticker: "AAPL", newAccountType: "Joint", newAssetClass: "Stocks", fundingMethod: "In-Kind Transfer (ACAT)", docsReceived: "IGO", dateFunded: "06/17/2026", notes: "Apple Inc. — 100 shares @ $192.45" },
+  { id: nextBdId++, date: "06/16/2026", lastName: "Johnson", firstName: "Patricia", fundsComingFrom: "Vanguard", currentAccountType: "Roth IRA", currentAssetClass: "Mutual Funds", receivingFirm: "Schwab", ticker: "VTI", newAccountType: "Roth IRA", newAssetClass: "ETFs", fundingMethod: "Direct Rollover", docsReceived: "In Process", notes: "Vanguard Total Stock Market ETF — 50 shares" },
+];
+
 const money = (s) => {
   const n = parseFloat(String(s || "").replace(/[^0-9.-]/g, ""));
   return isNaN(n) ? 0 : n;
@@ -461,20 +468,28 @@ const loadStore = () => {
 const STORED = loadStore();
 
 export default function TradeBlotter() {
-  const [trades, setTrades] = useState(() => {
-    const t = STORED?.trades || SAMPLE_TRADES;
-    nextId = t.reduce((m, x) => Math.max(m, x.id), 0) + 1;
-    return t;
-  });
-  const [form, setForm] = useState(initialForm);
-  const [view, setView] = useState("blotter"); // blotter | entry | settings
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("All");
-  const [filterType, setFilterType] = useState("All");
-  const [editId, setEditId] = useState(null);
+  const [view, setView] = useState("blotter"); // blotter | insurance | settings
   const [toast, setToast] = useState(null);
   const [confirmDlg, setConfirmDlg] = useState(null);
-  const formRef = useRef(null);
+
+  const [bdRecords, setBdRecords] = useState(() => {
+    const r = STORED?.bdRecords || SAMPLE_BD;
+    nextBdId = r.reduce((m, x) => Math.max(m, x.id), 0) + 1;
+    return r;
+  });
+  const [bdSearch, setBdSearch] = useState("");
+
+  const updateBd = (id, key, val) => setBdRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
+  const addBd = () => setBdRecords(rs => [{ id: nextBdId++, date: new Date().toLocaleDateString("en-US") }, ...rs]);
+  const removeBd = (id) => {
+    setConfirmDlg({
+      message: "Are you sure you're ready to delete this record?",
+      action: () => {
+        setBdRecords(rs => rs.filter(r => r.id !== id));
+        showToast("Record removed.", COLORS.accentRed);
+      },
+    });
+  };
 
   const [insRecords, setInsRecords] = useState(() => {
     const r = STORED?.insRecords || SAMPLE_INSURANCE;
@@ -494,10 +509,6 @@ export default function TradeBlotter() {
       },
     });
   };
-
-  const insFiltered = insRecords.filter(r =>
-    !insSearch || Object.values(r).join(" ").toLowerCase().includes(insSearch.toLowerCase())
-  );
 
   const [settings, setSettings] = useState(STORED?.settings || {
     firmName: "Russell Wealth Group",
@@ -527,12 +538,12 @@ export default function TradeBlotter() {
   useEffect(() => {
     const t = setTimeout(() => {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({ trades, insRecords, settings }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ bdRecords, insRecords, settings }));
         setSavedAt(new Date());
       } catch {}
     }, 400);
     return () => clearTimeout(t);
-  }, [trades, insRecords, settings]);
+  }, [bdRecords, insRecords, settings]);
 
   const updateAdvisor = (i, field, val) => setSettings(s => {
     const advisors = [...s.advisors];
@@ -561,76 +572,10 @@ export default function TradeBlotter() {
     return { ...s, [key]: list.includes(item) ? list.filter(x => x !== item) : [...list, item] };
   });
 
-  const setField = (k) => (v) => {
-    setForm(f => {
-      const updated = { ...f, [k]: v };
-      if (k === "productType") updated.carrier = "Select...";
-      // auto-calc total
-      if ((k === "quantity" || k === "price") && updated.quantity && updated.price) {
-        const total = (parseFloat(updated.quantity) * parseFloat(updated.price));
-        updated.totalAmount = isNaN(total) ? "" : total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      }
-      return updated;
-    });
-  };
-
   const showToast = (msg, color = COLORS.accentGreen) => {
     setToast({ msg, color });
     setTimeout(() => setToast(null), 2800);
   };
-
-  const handleSave = () => {
-    if (!form.lastName.trim() || !form.firstName.trim() || !form.ticker || form.tradeType === "Select..." || form.accountType === "Select...") {
-      showToast("Please fill in all required fields.", COLORS.accentRed);
-      return;
-    }
-    const middle = form.middleName.trim();
-    const clientName = `${form.lastName.trim()}, ${form.firstName.trim()}${middle ? " " + middle : ""}`;
-    const record = { ...form, clientName };
-    if (editId !== null) {
-      setTrades(ts => ts.map(t => t.id === editId ? { ...record, id: editId } : t));
-      showToast("Trade updated successfully.");
-    } else {
-      setTrades(ts => [{ ...record, id: nextId++ }, ...ts]);
-      showToast("Trade entered successfully.");
-    }
-    setForm(initialForm);
-    setEditId(null);
-    setView("blotter");
-  };
-
-  const handleEdit = (trade) => {
-    setForm({ ...initialForm, ...trade });
-    setEditId(trade.id);
-    setView("entry");
-    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth" }), 100);
-  };
-
-  const handleDelete = (id) => {
-    setConfirmDlg({
-      message: "Are you sure you're ready to delete this trade?",
-      action: () => {
-        setTrades(ts => ts.filter(t => t.id !== id));
-        showToast("Trade removed.", COLORS.accentRed);
-      },
-    });
-  };
-
-  const handleStatusChange = (id, status) => {
-    setTrades(ts => ts.map(t => t.id === id ? { ...t, status } : t));
-  };
-
-  const filtered = trades.filter(t => {
-    const matchSearch = !search || [t.clientName, t.ticker, t.accountNumber, t.securityName].join(" ").toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "All" || t.status === filterStatus;
-    const matchType = filterType === "All" || t.tradeType === filterType;
-    return matchSearch && matchStatus && matchType;
-  });
-
-  const totalValue = filtered.reduce((sum, t) => {
-    const n = parseFloat(t.totalAmount?.replace(/,/g, "") || 0);
-    return sum + (isNaN(n) ? 0 : n);
-  }, 0);
 
   return (
     <div style={{ minHeight: "100vh", background: COLORS.bg, color: COLORS.text, fontFamily: "'Inter', 'Segoe UI', sans-serif", fontSize: 14 }}>
@@ -684,7 +629,7 @@ export default function TradeBlotter() {
               {savedAt ? "✓ DATA SAVED · " + savedAt.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : "AUTOSAVE ON"}
             </div>
             <button
-              onClick={() => { setView("blotter"); setForm(initialForm); setEditId(null); }}
+              onClick={() => setView("blotter")}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
                 background: view === "blotter" ? "#fff" : "transparent",
@@ -693,7 +638,7 @@ export default function TradeBlotter() {
               }}
             >📋 BD Blotter</button>
             <button
-              onClick={() => { setView("insurance"); setForm(initialForm); setEditId(null); }}
+              onClick={() => setView("insurance")}
               style={{
                 padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
                 background: view === "insurance" ? "#fff" : "transparent",
@@ -701,15 +646,6 @@ export default function TradeBlotter() {
                 border: `1px solid ${view === "insurance" ? "#fff" : "rgba(255,255,255,0.35)"}`
               }}
             >🛡️ Insurance Blotter</button>
-            <button
-              onClick={() => { setView("entry"); setForm(initialForm); setEditId(null); }}
-              style={{
-                padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer",
-                background: view === "entry" ? "#fff" : "transparent",
-                color: view === "entry" ? COLORS.primary : COLORS.navyMuted,
-                border: `1px solid ${view === "entry" ? "#fff" : "rgba(255,255,255,0.35)"}`
-              }}
-            >+ New Trade</button>
             <button
               onClick={() => setView("settings")}
               style={{
@@ -725,382 +661,12 @@ export default function TradeBlotter() {
 
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
-        {/* Summary Cards */}
         {view === "blotter" && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
-            {[
-              { label: "Total Trades", value: filtered.length, color: COLORS.accent },
-              { label: "Total Value", value: "$" + totalValue.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), color: COLORS.accentGold },
-              { label: "Filled", value: trades.filter(t => t.status === "Filled").length, color: COLORS.accentGreen },
-              { label: "Pending / Submitted", value: trades.filter(t => ["Pending","Submitted"].includes(t.status)).length, color: "#7c3aed" },
-              { label: "Cancelled / Rejected", value: trades.filter(t => ["Cancelled","Rejected"].includes(t.status)).length, color: COLORS.accentRed },
-            ].map(c => (
-              <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
-                <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
-                <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
-              </div>
-            ))}
-          </div>
+          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} />
         )}
 
-        {/* BLOTTER VIEW */}
-        {view === "blotter" && (
-          <>
-            {/* Filters */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-              <input
-                placeholder="🔍  Search client, ticker, account..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-                style={{
-                  background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
-                  color: COLORS.text, padding: "8px 12px", fontSize: 13, outline: "none", width: 280
-                }}
-              />
-              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}
-                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, outline: "none", cursor: "pointer" }}>
-                <option value="All">All Statuses</option>
-                {STATUS.map(s => <option key={s}>{s}</option>)}
-              </select>
-              <select value={filterType} onChange={e => setFilterType(e.target.value)}
-                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, outline: "none", cursor: "pointer" }}>
-                <option value="All">All Trade Types</option>
-                {TRADE_TYPES.slice(1).map(t => <option key={t}>{t}</option>)}
-              </select>
-              <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
-                {filtered.length} trade{filtered.length !== 1 ? "s" : ""}
-              </div>
-            </div>
-
-            {/* Table */}
-            <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
-              <div style={{ overflowX: "auto" }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
-                  <thead>
-                    <tr style={{ background: COLORS.bgRow, borderBottom: `2px solid ${COLORS.border}` }}>
-                      {["Date", "Client / Account", "Type", "Security", "Qty", "Price", "Total", "Order", "Status", "Actions"].map(h => (
-                        <th key={h} style={{ padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.08em", whiteSpace: "nowrap" }}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filtered.length === 0 ? (
-                      <tr><td colSpan={10} style={{ padding: "40px", textAlign: "center", color: COLORS.textMuted }}>No trades found. Click <strong style={{ color: COLORS.accent }}>+ New Trade</strong> to add one.</td></tr>
-                    ) : filtered.map((t, i) => (
-                      <tr key={t.id} style={{ background: i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard, borderBottom: `1px solid ${COLORS.border}33`, transition: "background 0.15s" }}
-                        onMouseEnter={e => e.currentTarget.style.background = "#f4f4f5"}
-                        onMouseLeave={e => e.currentTarget.style.background = i % 2 === 0 ? COLORS.bgRowAlt : COLORS.bgCard}
-                      >
-                        <td style={{ padding: "10px 14px", whiteSpace: "nowrap", fontSize: 12, color: COLORS.textLabel }}>{t.tradeDate}</td>
-                        <td style={{ padding: "10px 14px", minWidth: 160 }}>
-                          <div style={{ fontWeight: 600, fontSize: 13 }}>{t.clientName}</div>
-                          <div style={{ fontSize: 11, color: COLORS.textMuted }}>{t.accountNumber} · {t.accountType}</div>
-                          <div style={{ fontSize: 11, color: COLORS.textMuted }}>{t.custodian}</div>
-                        </td>
-                        <td style={{ padding: "10px 14px" }}>
-                          <Badge label={t.tradeType} color={TRADE_COLORS[t.tradeType] || COLORS.accent} />
-                        </td>
-                        <td style={{ padding: "10px 14px", minWidth: 160 }}>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: COLORS.accentGold }}>{t.ticker}</div>
-                          <div style={{ fontSize: 11, color: COLORS.textMuted, maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.securityName}</div>
-                          <div style={{ fontSize: 10, color: COLORS.accent }}>{t.productType && t.productType !== "Select..." ? t.productType : t.assetClass}</div>
-                        </td>
-                        <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 600 }}>{t.quantity}</td>
-                        <td style={{ padding: "10px 14px", textAlign: "right" }}>${t.price}</td>
-                        <td style={{ padding: "10px 14px", textAlign: "right", fontWeight: 700, color: COLORS.accentGreen }}>${t.totalAmount}</td>
-                        <td style={{ padding: "10px 14px", whiteSpace: "nowrap", fontSize: 12 }}>
-                          <div>{t.orderType}</div>
-                          <div style={{ color: COLORS.textMuted, fontSize: 11 }}>{t.timeInForce}</div>
-                        </td>
-                        <td style={{ padding: "10px 14px" }}>
-                          <select
-                            value={t.status}
-                            onChange={e => handleStatusChange(t.id, e.target.value)}
-                            style={{
-                              background: (STATUS_COLORS[t.status] || COLORS.accent) + "22",
-                              border: `1px solid ${(STATUS_COLORS[t.status] || COLORS.accent)}44`,
-                              borderRadius: 20, color: STATUS_COLORS[t.status] || COLORS.accent,
-                              padding: "3px 8px", fontSize: 11, fontWeight: 700, cursor: "pointer", outline: "none"
-                            }}
-                          >
-                            {STATUS.map(s => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                        </td>
-                        <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
-                          <button onClick={() => handleEdit(t)} style={{ background: COLORS.accent + "22", border: `1px solid ${COLORS.accent}44`, borderRadius: 5, color: COLORS.accent, padding: "4px 10px", fontSize: 11, cursor: "pointer", marginRight: 6, fontWeight: 600 }}>Edit</button>
-                          <button onClick={() => handleDelete(t.id)} style={{ background: COLORS.accentRed + "22", border: `1px solid ${COLORS.accentRed}44`, borderRadius: 5, color: COLORS.accentRed, padding: "4px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕</button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* INSURANCE BLOTTER */}
         {view === "insurance" && (
-          <>
-            {/* Summary Cards */}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
-              {[
-                { label: "Records", value: insFiltered.length, color: COLORS.accent },
-                { label: "Monthly Amounts", value: "$" + insFiltered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
-                { label: "Funded", value: insFiltered.filter(r => (r.dateFunded || "").trim() !== "").length, color: COLORS.accentGreen },
-                { label: "Needs Attention", value: insFiltered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed },
-              ].map(c => (
-                <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
-                  <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
-                  <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Toolbar */}
-            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-              <input
-                placeholder="🔍  Search name, product, policy #..."
-                value={insSearch}
-                onChange={e => setInsSearch(e.target.value)}
-                style={{
-                  background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
-                  color: COLORS.text, padding: "8px 12px", fontSize: 13, outline: "none", width: 280
-                }}
-              />
-              <button onClick={addIns}
-                style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: COLORS.primary, color: "#fff", border: `1px solid ${COLORS.primary}` }}>
-                + Add Record
-              </button>
-              <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
-                {insFiltered.length} record{insFiltered.length !== 1 ? "s" : ""} · click any cell to edit
-              </div>
-            </div>
-
-            {/* Records — one card per trade, two sleeves each */}
-            {insFiltered.length === 0 ? (
-              <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: COLORS.textMuted }}>
-                No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
-              </div>
-            ) : insFiltered.map(r => (
-              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
-                {/* Record header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
-                    {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
-                    {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
-                  </span>
-                  <button onClick={() => removeIns(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
-                </div>
-                <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed" }}>
-                    <tbody>
-                      {INS_ROWS.map((row, bank) => (
-                        <Fragment key={bank}>
-                          <tr style={{ background: "#f4f4f5" }}>
-                            {row.cols.map(c => (
-                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
-                            ))}
-                          </tr>
-                          <tr>
-                            {row.cols.map(c => (
-                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
-                                {c.options ? (
-                                  <select
-                                    value={r[c.key] ?? ""}
-                                    onChange={e => updateIns(r.id, c.key, e.target.value)}
-                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "10px 6px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none", cursor: "pointer" }}
-                                  >
-                                    <option value=""></option>
-                                    {c.options.map(o => <option key={o} value={o}>{o}</option>)}
-                                  </select>
-                                ) : c.key === "trackingNumber" ? (
-                                  <div style={{ display: "flex", alignItems: "center" }}>
-                                    <input
-                                      value={r[c.key] ?? ""}
-                                      onChange={e => updateIns(r.id, c.key, e.target.value)}
-                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 6px 11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
-                                    />
-                                    {(r.trackingNumber || "").trim() !== "" && (
-                                      <a href={trackingUrl(r.trackingNumber)} target="_blank" rel="noopener noreferrer" title="Track this shipment"
-                                        style={{ padding: "0 8px", fontSize: 14, fontWeight: 700, color: COLORS.accent, textDecoration: "none" }}>↗</a>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <input
-                                    value={r[c.key] ?? ""}
-                                    placeholder={c.type === "date" ? "MM/DD/YYYY" : undefined}
-                                    onChange={e => updateIns(r.id, c.key, c.type === "date" ? fmtDateInput(e.target.value) : c.type === "money" ? fmtDollarInput(e.target.value) : e.target.value)}
-                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
-                                  />
-                                )}
-                              </td>
-                            ))}
-                          </tr>
-                        </Fragment>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ))}
-          </>
-        )}
-
-        {/* ENTRY FORM */}
-        {view === "entry" && (
-          <div ref={formRef} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden" }}>
-            {/* Form Header */}
-            <div style={{ background: COLORS.primary, padding: "16px 24px", borderBottom: `1px solid ${COLORS.primaryHover}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: 16, color: "#fff" }}>{editId !== null ? "Edit Trade" : "New Trade Entry"}</div>
-              </div>
-              <div style={{ fontSize: 12, color: COLORS.navyMuted }}>{new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}</div>
-            </div>
-
-            <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 28 }}>
-
-              {/* Section: Trade Basics */}
-              <Section title="Trade Details" icon="📅">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <InputField label="Trade Date" value={form.tradeDate} onChange={setField("tradeDate")} type="date" required />
-                  <InputField label="Settlement Date" value={form.settlementDate} onChange={setField("settlementDate")} type="date" />
-                  <SelectField label="Settlement Type" value={form.settlement} onChange={setField("settlement")} options={SETTLEMENT} />
-                  <SelectField label="Status" value={form.status} onChange={setField("status")} options={STATUS} />
-                </div>
-              </Section>
-
-              {/* Section: Client & Account */}
-              <Section title="Client & Account" icon="👤">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <div style={{ gridColumn: "1 / -1", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
-                    <InputField label="Last Name" value={form.lastName} onChange={setField("lastName")} placeholder="Last name" required />
-                    <InputField label="First Name" value={form.firstName} onChange={setField("firstName")} placeholder="First name" required />
-                    <InputField label="Middle" value={form.middleName} onChange={setField("middleName")} placeholder="Middle name" />
-                  </div>
-                  <InputField label="Account Number" value={form.accountNumber} onChange={setField("accountNumber")} placeholder="" required />
-                  <SelectField label="Account Type" value={form.accountType} onChange={setField("accountType")} options={ACCOUNT_TYPES} required />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.08em" }}>Custodian<span style={{ color: COLORS.accentRed, marginLeft: 2 }}>*</span></label>
-                  <select value={form.custodian}
-                    onChange={e => { if (!e.target.value.startsWith("──")) setField("custodian")(e.target.value); }}
-                    style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
-                      color: form.custodian === "Select..." ? COLORS.textMuted : COLORS.text,
-                      padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", appearance: "none", cursor: "pointer" }}>
-                    {(() => {
-                      const all = CUSTODIANS.slice(1);
-                      const pref = (settings.preferredCustodians || []).filter(c => all.includes(c));
-                      const rest = all.filter(c => !pref.includes(c));
-                      const opts = pref.length > 0
-                        ? ["Select...", "── Preferred ──", ...pref, "── All Custodians ──", ...rest]
-                        : ["Select...", ...all];
-                      return opts.map(o => (
-                        <option key={o} value={o} disabled={o.startsWith("──")}
-                          style={{ color: o.startsWith("──") ? "#d97706" : "#09090b", fontWeight: o.startsWith("──") ? 700 : 400, background: "#ffffff" }}>
-                          {o}
-                        </option>
-                      ));
-                    })()}
-                  </select>
-                </div>
-                  <SelectField label="Risk Profile" value={form.riskLevel} onChange={setField("riskLevel")} options={RISK_LEVELS} />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.08em" }}>Advisor</label>
-                  <select value={form.advisor} onChange={e => setField("advisor")(e.target.value)}
-                    style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
-                      color: form.advisor ? COLORS.text : COLORS.textMuted,
-                      padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", appearance: "none", cursor: "pointer" }}>
-                    <option value="">Select advisor...</option>
-                    {settings.advisors.filter(a => a.name).map(a => (
-                      <option key={a.name} value={a.name}>{a.name}{a.title ? ` – ${a.title}` : ""}</option>
-                    ))}
-                  </select>
-                </div>
-                </div>
-              </Section>
-
-              {/* Section: Security */}
-              <Section title="Security & Product" icon="📊">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <SelectField label="Trade Type" value={form.tradeType} onChange={setField("tradeType")} options={TRADE_TYPES} required />
-                  <SelectField label="Asset Class" value={form.assetClass} onChange={setField("assetClass")} options={ASSET_CLASSES} required />
-                  <SelectField label="Product Type" value={form.productType} onChange={setField("productType")} options={PRODUCT_TYPES} required />
-                  <SelectField label="Carrier / Fund Family" value={form.carrier} onChange={setField("carrier")} options={getCarriers(form.productType, settings)} />
-                  <InputField label="Ticker / Symbol / Policy #" value={form.ticker} onChange={setField("ticker")} placeholder="e.g. AAPL or Policy #" />
-                  <InputField label="Security / Product Name" value={form.securityName} onChange={setField("securityName")} placeholder="e.g. Allianz 222 FIA" />
-                </div>
-              </Section>
-
-              {/* Section: Execution */}
-              <Section title="Execution" icon="⚡">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <InputField label="Quantity / Shares" value={form.quantity} onChange={setField("quantity")} placeholder="0" type="number" required />
-                  <InputField label="Price Per Share" value={form.price} onChange={setField("price")} placeholder="0.00" type="number" required />
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <label style={{ fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.08em" }}>Total Amount</label>
-                    <div style={{ background: COLORS.bgRow, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.accentGreen, padding: "8px 10px", fontSize: 15, fontWeight: 700 }}>
-                      ${form.totalAmount || "0.00"}
-                    </div>
-                  </div>
-                  <SelectField label="Order Type" value={form.orderType} onChange={setField("orderType")} options={ORDER_TYPES} required />
-                  <InputField label="Limit Price" value={form.limitPrice} onChange={setField("limitPrice")} placeholder="0.00" type="number" />
-                  <InputField label="Stop Price" value={form.stopPrice} onChange={setField("stopPrice")} placeholder="0.00" type="number" />
-                  <SelectField label="Time in Force" value={form.timeInForce} onChange={setField("timeInForce")} options={TIME_IN_FORCE} />
-                  <div />
-                </div>
-              </Section>
-
-              {/* Section: Compliance */}
-              <Section title="Compliance & Tax" icon="🛡️">
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }}>
-                  <SelectField label="Solicited / Unsolicited" value={form.solicited} onChange={setField("solicited")} options={SOLICITED} required />
-                  <SelectField label="Discretion" value={form.discretion} onChange={setField("discretion")} options={DISCRETION} required />
-                  <SelectField label="Tax Lot Method" value={form.taxLot} onChange={setField("taxLot")} options={TAX_LOT} />
-                  <div />
-                </div>
-              </Section>
-
-              {/* Notes */}
-              <Section title="Notes & Suitability" icon="📝">
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <label style={{ fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.08em" }}>Trade Notes / Rationale</label>
-                  <textarea
-                    value={form.notes}
-                    onChange={e => setField("notes")(e.target.value)}
-                    placeholder="Document trade rationale, client instructions, suitability notes, or compliance remarks..."
-                    rows={4}
-                    style={{
-                      background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
-                      color: COLORS.text, padding: "10px 12px", fontSize: 13, outline: "none", resize: "vertical",
-                      fontFamily: "inherit", width: "100%", boxSizing: "border-box"
-                    }}
-                  />
-                </div>
-              </Section>
-
-              {/* Actions */}
-              <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", paddingTop: 8, borderTop: `1px solid ${COLORS.border}` }}>
-                <button
-                  onClick={() => { setForm(initialForm); setEditId(null); setView("blotter"); }}
-                  style={{ padding: "10px 24px", borderRadius: 7, fontWeight: 600, fontSize: 14, cursor: "pointer", background: "transparent", color: COLORS.textMuted, border: `1px solid ${COLORS.border}` }}
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => setForm(initialForm)}
-                  style={{ padding: "10px 24px", borderRadius: 7, fontWeight: 600, fontSize: 14, cursor: "pointer", background: COLORS.bgInput, color: COLORS.textLabel, border: `1px solid ${COLORS.border}` }}
-                >
-                  Clear Form
-                </button>
-                <button
-                  onClick={handleSave}
-                  style={{ padding: "10px 28px", borderRadius: 7, fontWeight: 700, fontSize: 14, cursor: "pointer", background: COLORS.primary, color: "#fff", border: "none", boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}
-                >
-                  {editId !== null ? "💾 Update Trade" : "✅ Submit Trade"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <RecordSheet records={insRecords} search={insSearch} setSearch={setInsSearch} onAdd={addIns} onUpdate={updateIns} onRemove={removeIns} />
         )}
 
         {/* SETTINGS VIEW */}
@@ -1261,6 +827,118 @@ export default function TradeBlotter() {
         button:hover { opacity: 0.88; }
       `}</style>
     </div>
+  );
+}
+
+function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
+  const filtered = records.filter(r =>
+    !search || Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())
+  );
+  return (
+    <>
+            {/* Summary Cards */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
+              {[
+                { label: "Records", value: filtered.length, color: COLORS.accent },
+                { label: "Monthly Amounts", value: "$" + filtered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
+                { label: "Funded", value: filtered.filter(r => (r.dateFunded || "").trim() !== "").length, color: COLORS.accentGreen },
+                { label: "Needs Attention", value: filtered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed },
+              ].map(c => (
+                <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
+                  <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
+                  <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Toolbar */}
+            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
+              <input
+                placeholder="🔍  Search name, product, policy #..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{
+                  background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6,
+                  color: COLORS.text, padding: "8px 12px", fontSize: 13, outline: "none", width: 280
+                }}
+              />
+              <button onClick={onAdd}
+                style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: COLORS.primary, color: "#fff", border: `1px solid ${COLORS.primary}` }}>
+                + Add Record
+              </button>
+              <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
+                {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
+              </div>
+            </div>
+
+            {/* Records — one card per trade, two sleeves each */}
+            {filtered.length === 0 ? (
+              <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: COLORS.textMuted }}>
+                No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
+              </div>
+            ) : filtered.map(r => (
+              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
+                {/* Record header bar */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
+                    {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                    {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
+                  </span>
+                  <button onClick={() => onRemove(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
+                </div>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed" }}>
+                    <tbody>
+                      {INS_ROWS.map((row, bank) => (
+                        <Fragment key={bank}>
+                          <tr style={{ background: "#f4f4f5" }}>
+                            {row.cols.map(c => (
+                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 10, fontWeight: 700, color: COLORS.text, textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                            ))}
+                          </tr>
+                          <tr>
+                            {row.cols.map(c => (
+                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                                {c.options ? (
+                                  <select
+                                    value={r[c.key] ?? ""}
+                                    onChange={e => onUpdate(r.id, c.key, e.target.value)}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "10px 6px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none", cursor: "pointer" }}
+                                  >
+                                    <option value=""></option>
+                                    {c.options.map(o => <option key={o} value={o}>{o}</option>)}
+                                  </select>
+                                ) : c.key === "trackingNumber" ? (
+                                  <div style={{ display: "flex", alignItems: "center" }}>
+                                    <input
+                                      value={r[c.key] ?? ""}
+                                      onChange={e => onUpdate(r.id, c.key, e.target.value)}
+                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 6px 11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                    />
+                                    {(r.trackingNumber || "").trim() !== "" && (
+                                      <a href={trackingUrl(r.trackingNumber)} target="_blank" rel="noopener noreferrer" title="Track this shipment"
+                                        style={{ padding: "0 8px", fontSize: 14, fontWeight: 700, color: COLORS.accent, textDecoration: "none" }}>↗</a>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <input
+                                    value={r[c.key] ?? ""}
+                                    placeholder={c.type === "date" ? "MM/DD/YYYY" : undefined}
+                                    onChange={e => onUpdate(r.id, c.key, c.type === "date" ? fmtDateInput(e.target.value) : c.type === "money" ? fmtDollarInput(e.target.value) : e.target.value)}
+                                    style={{ width: "100%", boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 600, color: "#000", outline: "none" }}
+                                  />
+                                )}
+                              </td>
+                            ))}
+                          </tr>
+                        </Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+    </>
   );
 }
 
