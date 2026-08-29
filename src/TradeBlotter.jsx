@@ -879,7 +879,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
             ) : filtered.map((r, idx) => (
               <Fragment key={r.id}>
                 {idx > 0 && (
-                  <div style={{ height: 12, borderRadius: 6, margin: "0 0 22px", background: `repeating-linear-gradient(45deg, ${COLORS.primary}, ${COLORS.primary} 14px, #c9d3e0 14px, #c9d3e0 28px)` }} />
+                  <div style={{ height: 12, borderRadius: 6, margin: "0 0 22px", background: `repeating-linear-gradient(90deg, ${COLORS.primary}, ${COLORS.primary} 14px, #c9d3e0 14px, #c9d3e0 28px)` }} />
                 )}
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 22 }}>
                 {/* Record header bar */}
