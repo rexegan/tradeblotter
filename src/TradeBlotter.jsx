@@ -386,7 +386,7 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 10), spans: { receivingFirm: 2 } },
+  { cols: INS_COLUMNS.slice(0, 10), spans: { firstName: 2 } },
   { cols: INS_COLUMNS.slice(10, 19), spans: { trackingNumber: 3 } },
   { cols: INS_COLUMNS.slice(19), spans: { notes: 4 } },
 ];
@@ -891,9 +891,9 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                     <tbody>
                       {INS_ROWS.map((row, bank) => (
                         <Fragment key={bank}>
-                          <tr style={{ background: "#f4f4f5" }}>
+                          <tr style={{ background: bank % 2 === 0 ? "#dfe2e8" : "#f4f4f5" }}>
                             {row.cols.map(c => (
-                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#000080", textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.label}</th>
+                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#000080", textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}55`, whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.label}</th>
                             ))}
                           </tr>
                           <tr>
