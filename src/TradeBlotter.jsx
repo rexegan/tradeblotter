@@ -877,7 +877,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
               </div>
             ) : filtered.map(r => (
-              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 18 }}>
+              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 44 }}>
                 {/* Record header bar */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
