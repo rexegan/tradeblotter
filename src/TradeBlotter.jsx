@@ -876,8 +876,12 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: COLORS.textMuted }}>
                 No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
               </div>
-            ) : filtered.map(r => (
-              <div key={r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 44 }}>
+            ) : filtered.map((r, idx) => (
+              <Fragment key={r.id}>
+                {idx > 0 && (
+                  <div style={{ height: 12, borderRadius: 6, margin: "0 0 22px", background: `repeating-linear-gradient(45deg, ${COLORS.primary}, ${COLORS.primary} 14px, #c9d3e0 14px, #c9d3e0 28px)` }} />
+                )}
+              <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 22 }}>
                 {/* Record header bar */}
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
@@ -937,6 +941,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   </table>
                 </div>
               </div>
+              </Fragment>
             ))}
     </>
   );
