@@ -1,0 +1,24 @@
+name: Probe Pages Site
+
+on:
+  workflow_dispatch:
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch live site
+        run: |
+          echo "=== headers ==="
+          curl -sSI https://rexegan.github.io/tradeblotter/ | head -20 || true
+          echo "=== body head ==="
+          curl -sS https://rexegan.github.io/tradeblotter/ | head -c 2000 || true
+          echo ""
+          echo "=== bundle check ==="
+          BUNDLE=$(curl -sS https://rexegan.github.io/tradeblotter/ | grep -o '/tradeblotter/assets/[^"]*\.js' | head -1 || true)
+          echo "bundle path: $BUNDLE"
+          if [ -n "$BUNDLE" ]; then
+            curl -sSI "https://rexegan.github.io$BUNDLE" | head -8 || true
+          fi
+          echo "=== root site ==="
+          curl -sSI https://rexegan.github.io/ | head -5 || true
