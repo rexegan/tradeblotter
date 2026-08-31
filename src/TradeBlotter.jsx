@@ -878,12 +878,9 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               </div>
             ) : filtered.map((r, idx) => (
               <Fragment key={r.id}>
-                {idx > 0 && (
-                  <div style={{ height: 12, margin: 0, background: `repeating-linear-gradient(90deg, ${COLORS.primary}, ${COLORS.primary} 14px, #c9d3e0 14px, #c9d3e0 28px)` }} />
-                )}
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0 }}>
                 {/* Record header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: "#2a5794", borderBottom: "1px solid #1d4270" }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                     {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
