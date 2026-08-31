@@ -64,3 +64,30 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           timeout: 1800000
+
+  reassert:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment2.outputs.page_url }}
+    steps:
+      - name: Wait out any competing legacy deploy
+        run: sleep 150
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: cp dist/index.html dist/app.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+          name: github-pages-final
+      - id: deployment2
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: github-pages-final
+          timeout: 1800000
