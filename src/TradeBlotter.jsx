@@ -880,7 +880,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               <Fragment key={r.id}>
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0 }}>
                 {/* Record header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: "#2a5794", borderBottom: "1px solid #1d4270" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                     {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
@@ -892,14 +892,14 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                     <tbody>
                       {INS_ROWS.map((row, bank) => (
                         <Fragment key={bank}>
-                          <tr style={{ background: COLORS.primary }}>
+                          <tr style={{ background: "#2a5794" }}>
                             {row.cols.map(c => (
-                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.22)", whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.label}</th>
+                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.label}</th>
                             ))}
                           </tr>
                           <tr>
                             {row.cols.map(c => (
-                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: `1px solid ${COLORS.border}33` }}>
+                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid #2a5794" }}>
                                 {c.options ? (
                                   <select
                                     value={r[c.key] ?? ""}
