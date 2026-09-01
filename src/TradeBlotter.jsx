@@ -322,7 +322,7 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
 ];
 
-const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank / Credit Union", "Other"];
+const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank", "Credit Union", "Other"];
 const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "Custodial (UTMA)", "529", "HSA", "Annuity", "Life Insurance", "Other"];
 const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities", "CDs", "Money Market", "Cash", "Real Estate", "Alternatives", "Life Insurance", "Other"];
 const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
@@ -351,7 +351,7 @@ const trackingUrl = (raw) => {
 const INS_COLUMNS = [
   { key: "date", label: "Date", w: 95, type: "date" },
   { key: "lastName", label: "Last Name", w: 110 },
-  { key: "middleInitial", label: "Middle Initial", w: 90 },
+  { key: "middleInitial", label: "Middle Name", w: 90 },
   { key: "firstName", label: "First Name", w: 130 },
   { key: "fundsComingFrom", label: "Funds Coming From", w: 130, options: INS_INSTITUTIONS },
   { key: "currentAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
@@ -386,9 +386,9 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 10), spans: { firstName: 2 } },
-  { cols: INS_COLUMNS.slice(10, 19), spans: { trackingNumber: 3 } },
-  { cols: INS_COLUMNS.slice(19), spans: { notes: 4 } },
+  { cols: INS_COLUMNS.slice(0, 10), widths: { date: "8%", lastName: "10%", middleInitial: "9%", firstName: "13.5%", fundsComingFrom: "12.5%", currentAccountType: "8.5%", currentAssetClass: "8.5%", currentPolicyNumber: "10%", receivingFirm: "12.5%", ticker: "7.5%" } },
+  { cols: INS_COLUMNS.slice(10, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "10%", checkNumber: "8.5%", fboCheck: "8.5%", docsReceived: "10%", trackingNumber: "25%", dateFunded: "9%", newPolicyNumber: "10%" } },
+  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "9%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", eMoney: "8%", notes: "31%" } },
 ];
 
 let nextBdId = 1;
@@ -888,18 +888,17 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   <button onClick={() => onRemove(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
                 </div>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed" }}>
-                    <tbody>
-                      {INS_ROWS.map((row, bank) => (
-                        <Fragment key={bank}>
-                          <tr style={{ background: "#2a5794" }}>
-                            {row.cols.map(c => (
-                              <th key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderTop: bank > 0 ? `6px solid ${COLORS.bg}` : "none", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.label}</th>
-                            ))}
-                          </tr>
-                          <tr>
-                            {row.cols.map(c => (
-                              <td key={c.key} colSpan={row.spans[c.key] || 1} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid #2a5794" }}>
+                  {INS_ROWS.map((row, bank) => (
+                    <table key={bank} style={{ width: "100%", minWidth: 1000, borderCollapse: "collapse", tableLayout: "fixed", marginTop: bank > 0 ? 6 : 0 }}>
+                      <tbody>
+                        <tr style={{ background: "#2a5794" }}>
+                          {row.cols.map(c => (
+                            <th key={c.key} style={{ width: row.widths[c.key], padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.key === "ticker" ? <>Ticker<br />Symbol</> : c.label}</th>
+                          ))}
+                        </tr>
+                        <tr>
+                          {row.cols.map(c => (
+                            <td key={c.key} style={{ padding: 0, borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid #2a5794" }}>
                                 {c.options ? (
                                   <select
                                     value={r[c.key] ?? ""}
@@ -930,12 +929,11 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                                   />
                                 )}
                               </td>
-                            ))}
-                          </tr>
-                        </Fragment>
-                      ))}
-                    </tbody>
-                  </table>
+                          ))}
+                        </tr>
+                      </tbody>
+                    </table>
+                  ))}
                 </div>
               </div>
               </Fragment>
