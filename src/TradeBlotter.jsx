@@ -350,6 +350,7 @@ const trackingUrl = (raw) => {
 
 const INS_COLUMNS = [
   { key: "date", label: "Date", w: 95, type: "date" },
+  { key: "amount", label: "Amount", w: 90, type: "money" },
   { key: "lastName", label: "Last Name", w: 110 },
   { key: "middleInitial", label: "Middle Name", w: 90 },
   { key: "firstName", label: "First Name", w: 130 },
@@ -386,9 +387,9 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 10), widths: { date: "8%", lastName: "10%", middleInitial: "9%", firstName: "13.5%", fundsComingFrom: "12.5%", currentAccountType: "8.5%", currentAssetClass: "8.5%", currentPolicyNumber: "10%", receivingFirm: "12.5%", ticker: "7.5%" } },
-  { cols: INS_COLUMNS.slice(10, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "10%", checkNumber: "8.5%", fboCheck: "8.5%", docsReceived: "10%", trackingNumber: "25%", dateFunded: "9%", newPolicyNumber: "10%" } },
-  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "9%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", eMoney: "8%", notes: "31%" } },
+  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.6%", amount: "8.4%", lastName: "10%", middleInitial: "8%", firstName: "10.8%", fundsComingFrom: "12%", currentAccountType: "8%", currentAssetClass: "8%", currentPolicyNumber: "7.7%", receivingFirm: "12%", ticker: "7.5%" } },
+  { cols: INS_COLUMNS.slice(11, 20), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "10%", checkNumber: "8.5%", fboCheck: "8.5%", docsReceived: "10%", trackingNumber: "25%", dateFunded: "9%", newPolicyNumber: "10%" } },
+  { cols: INS_COLUMNS.slice(20), widths: { bankDraft: "9%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", eMoney: "8%", notes: "31%" } },
 ];
 
 let nextBdId = 1;
