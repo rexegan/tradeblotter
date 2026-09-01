@@ -385,9 +385,9 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8.4%", lastName: "10%", middleInitial: "8%", firstName: "9.7%", fundsComingFrom: "13%", currentAccountType: "8%", currentAssetClass: "8%", currentPolicyNumber: "7.3%", receivingFirm: "12.9%", ticker: "7.5%" } },
-  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "11%", newAssetClass: "11%", fundingMethod: "12%", checkNumber: "10%", docsReceived: "12%", trackingNumber: "18%", dateFunded: "12%", newPolicyNumber: "14%" } },
-  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "6%", draftStartDate: "10%", monthlyAmount: "8%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", notes: "44%" } },
+  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8%", lastName: "10%", middleInitial: "7.6%", firstName: "9.7%", fundsComingFrom: "13%", currentAccountType: "7.75%", currentAssetClass: "7.75%", currentPolicyNumber: "7.3%", receivingFirm: "14.2%", ticker: "7.5%" } },
+  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "13%", newAssetClass: "13%", fundingMethod: "14.5%", checkNumber: "9%", docsReceived: "13%", trackingNumber: "16%", dateFunded: "9.5%", newPolicyNumber: "12%" } },
+  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "6%", draftStartDate: "8%", monthlyAmount: "8%", datePolicyDelivered: "8%", commissionPaidDate: "8%", crmUpdated: "8%", notes: "54%" } },
 ];
 
 const STACKED_HEADERS = {
@@ -396,6 +396,7 @@ const STACKED_HEADERS = {
   bankDraft: ["Bank", "Draft"],
   datePolicyDelivered: ["Date Policy", "Delivered"],
   commissionPaidDate: ["Commission", "Paid Date"],
+  newPolicyNumber: ["New Policy", "Account Number"],
 };
 
 let nextBdId = 1;
