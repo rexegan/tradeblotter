@@ -326,7 +326,7 @@ const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "
 const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "Custodial (UTMA)", "529", "HSA", "Annuity", "Life Insurance", "Other"];
 const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities", "CDs", "Money Market", "Cash", "Real Estate", "Alternatives", "Life Insurance", "Other"];
 const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
-const INS_DOCS_STATUS = ["IGO", "NIGO", "In Process", "Needs Immediate Attention", "Needs Attention"];
+const INS_DOCS_STATUS = ["IGO", "NIGO", "In Process", "Needs Attention"];
 
 const fmtDateInput = (v) => {
   const d = String(v || "").replace(/\D/g, "").slice(0, 8);
@@ -364,7 +364,6 @@ const INS_COLUMNS = [
   { key: "newAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "fundingMethod", label: "Funding Method", w: 110, options: INS_FUNDING_METHODS },
   { key: "checkNumber", label: "Check #", w: 90 },
-  { key: "fboCheck", label: "FBO Check", w: 90 },
   { key: "docsReceived", label: "Docs Rec'd", w: 100, options: INS_DOCS_STATUS },
   { key: "trackingNumber", label: "Overnight Tracking #", w: 140 },
   { key: "dateFunded", label: "Date Funded", w: 100, type: "date" },
@@ -375,7 +374,6 @@ const INS_COLUMNS = [
   { key: "datePolicyDelivered", label: "Date Policy Delivered", w: 140, type: "date" },
   { key: "commissionPaidDate", label: "Commission Paid Date", w: 145, type: "date" },
   { key: "crmUpdated", label: "CRM Updated", w: 105, type: "date" },
-  { key: "eMoney", label: "eMoney", w: 90 },
   { key: "notes", label: "Notes", w: 220 },
 ];
 
@@ -387,10 +385,18 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.6%", amount: "8.4%", lastName: "10%", middleInitial: "8%", firstName: "10.8%", fundsComingFrom: "12%", currentAccountType: "8%", currentAssetClass: "8%", currentPolicyNumber: "7.7%", receivingFirm: "12%", ticker: "7.5%" } },
-  { cols: INS_COLUMNS.slice(11, 20), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "10%", checkNumber: "8.5%", fboCheck: "8.5%", docsReceived: "10%", trackingNumber: "25%", dateFunded: "9%", newPolicyNumber: "10%" } },
-  { cols: INS_COLUMNS.slice(20), widths: { bankDraft: "9%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", eMoney: "8%", notes: "31%" } },
+  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8.4%", lastName: "10%", middleInitial: "8%", firstName: "9.7%", fundsComingFrom: "13%", currentAccountType: "8%", currentAssetClass: "8%", currentPolicyNumber: "7.3%", receivingFirm: "12.9%", ticker: "7.5%" } },
+  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "11%", newAssetClass: "11%", fundingMethod: "12%", checkNumber: "10%", docsReceived: "12%", trackingNumber: "18%", dateFunded: "12%", newPolicyNumber: "14%" } },
+  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "6%", draftStartDate: "10%", monthlyAmount: "8%", datePolicyDelivered: "11%", commissionPaidDate: "11%", crmUpdated: "10%", notes: "44%" } },
 ];
+
+const STACKED_HEADERS = {
+  receivingFirm: ["Receiving", "Firm"],
+  ticker: ["Ticker", "Symbol"],
+  bankDraft: ["Bank", "Draft"],
+  datePolicyDelivered: ["Date Policy", "Delivered"],
+  commissionPaidDate: ["Commission", "Paid Date"],
+};
 
 let nextBdId = 1;
 
@@ -894,7 +900,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                       <tbody>
                         <tr style={{ background: "#2a5794" }}>
                           {row.cols.map(c => (
-                            <th key={c.key} style={{ width: row.widths[c.key], padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{c.key === "receivingFirm" ? <>Receiving<br />Firm</> : c.key === "ticker" ? <>Ticker<br />Symbol</> : c.label}</th>
+                            <th key={c.key} style={{ width: row.widths[c.key], padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{STACKED_HEADERS[c.key] ? <>{STACKED_HEADERS[c.key][0]}<br />{STACKED_HEADERS[c.key][1]}</> : c.label}</th>
                           ))}
                         </tr>
                         <tr>
