@@ -386,8 +386,8 @@ const SAMPLE_INSURANCE = [
 
 const INS_ROWS = [
   { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8%", lastName: "11%", middleInitial: "8.3%", firstName: "10.2%", fundsComingFrom: "10%", currentAccountType: "8.5%", currentAssetClass: "9.3%", currentPolicyNumber: "8%", receivingFirm: "11%", ticker: "8.5%" } },
-  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "15%", newAssetClass: "9%", fundingMethod: "16%", checkNumber: "9.5%", docsReceived: "10%", trackingNumber: "20%", dateFunded: "8%", newPolicyNumber: "12.5%" } },
-  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "5%", draftStartDate: "8%", monthlyAmount: "8%", datePolicyDelivered: "8%", commissionPaidDate: "8%", crmUpdated: "8%", notes: "55%" } },
+  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "19%", checkNumber: "6%", docsReceived: "12%", trackingNumber: "13.5%", dateFunded: "8.5%", newPolicyNumber: "22%" } },
+  { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "5.5%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "10%", commissionPaidDate: "10%", crmUpdated: "10.5%", notes: "44%" } },
 ];
 
 const STACKED_HEADERS = {
@@ -398,6 +398,7 @@ const STACKED_HEADERS = {
   commissionPaidDate: ["Commission", "Paid Date"],
   newPolicyNumber: ["New Policy", "Account Number"],
   dateFunded: ["Date", "Funded"],
+  newAccountType: ["Account", "Type"],
 };
 
 let nextBdId = 1;
