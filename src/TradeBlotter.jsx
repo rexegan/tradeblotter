@@ -386,7 +386,7 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8%", qualified: "5.5%", lastName: "12.5%", middleInitial: "8.8%", firstName: "11.2%", fundsComingFrom: "11%", currentAccountType: "9%", currentAssetClass: "9.8%", currentPolicyNumber: "8.5%", ticker: "8.5%" } },
+  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "7%", qualified: "4.5%", lastName: "14.5%", middleInitial: "8.8%", firstName: "11.2%", fundsComingFrom: "11%", currentAccountType: "9%", currentAssetClass: "9.8%", currentPolicyNumber: "8.5%", ticker: "8.5%" } },
   { cols: INS_COLUMNS.slice(11, 20), widths: { receivingFirm: "12%", newAccountType: "10%", newAssetClass: "10%", fundingMethod: "16.5%", checkNumber: "6.5%", docsReceived: "13%", trackingNumber: "14%", dateFunded: "9%", newPolicyNumber: "9%" } },
   { cols: INS_COLUMNS.slice(20), widths: { bankDraft: "5.5%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "10%", commissionPaidDate: "10%", crmUpdated: "10.5%", notes: "44%" } },
 ];
