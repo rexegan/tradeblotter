@@ -491,7 +491,7 @@ export default function TradeBlotter() {
   const [bdSearch, setBdSearch] = useState("");
 
   const updateBd = (id, key, val) => setBdRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
-  const addBd = () => setBdRecords(rs => [{ id: nextBdId++, date: new Date().toLocaleDateString("en-US") }, ...rs]);
+  const addBd = () => setBdRecords(rs => [{ id: nextBdId++, date: new Date().toLocaleDateString("en-US"), createdAt: Date.now() }, ...rs]);
   const removeBd = (id) => {
     setConfirmDlg({
       message: "Are you sure you're ready to delete this record?",
@@ -510,7 +510,7 @@ export default function TradeBlotter() {
   const [insSearch, setInsSearch] = useState("");
 
   const updateIns = (id, key, val) => setInsRecords(rs => rs.map(r => r.id === id ? { ...r, [key]: val } : r));
-  const addIns = () => setInsRecords(rs => [{ id: nextInsId++, date: new Date().toLocaleDateString("en-US") }, ...rs]);
+  const addIns = () => setInsRecords(rs => [{ id: nextInsId++, date: new Date().toLocaleDateString("en-US"), createdAt: Date.now() }, ...rs]);
   const removeIns = (id) => {
     setConfirmDlg({
       message: "Are you sure you're ready to delete this record?",
@@ -841,6 +841,63 @@ export default function TradeBlotter() {
   );
 }
 
+function recCreatedAt(r) {
+  if (r.createdAt) return r.createdAt;
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec((r.date || "").trim());
+  if (m) return new Date(+m[3], +m[1] - 1, +m[2]).getTime();
+  return null;
+}
+
+function elapsedParts(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return {
+    d: Math.floor(s / 86400),
+    h: Math.floor((s % 86400) / 3600),
+    m: Math.floor((s % 3600) / 60),
+    s: s % 60,
+  };
+}
+
+function RecordTimer({ r, onUpdate }) {
+  const [now, setNow] = useState(Date.now());
+  const done = !!r.completedAt;
+  useEffect(() => {
+    if (done) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [done]);
+  const start = recCreatedAt(r);
+  const parts = start ? elapsedParts((done ? r.completedAt : now) - start) : null;
+  const boxBg = done ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.12)";
+  const boxBorder = done ? "1px solid #22c55e" : "1px solid rgba(255,255,255,0.35)";
+  const numColor = done ? "#86efac" : "#fff";
+  return (
+    <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+      {start && (
+        <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.navyMuted, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+          Entered {new Date(start).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}
+        </span>
+      )}
+      {parts && [["Days", parts.d], ["Hrs", parts.h], ["Min", parts.m], ["Sec", parts.s]].map(([lbl, val]) => (
+        <span key={lbl} style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 34, padding: "2px 6px", borderRadius: 5, background: boxBg, border: boxBorder }}>
+          <span style={{ fontFamily: "ui-monospace, Menlo, Consolas, monospace", fontSize: 13, fontWeight: 900, lineHeight: "15px", color: numColor }}>{String(val).padStart(2, "0")}</span>
+          <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.navyMuted }}>{lbl}</span>
+        </span>
+      ))}
+      {done && <span style={{ fontSize: 11, fontWeight: 800, color: "#4ade80", letterSpacing: "0.05em" }}>✓ COMPLETE</span>}
+      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <input
+          type="checkbox"
+          checked={done}
+          onChange={e => onUpdate(r.id, "completedAt", e.target.checked ? Date.now() : null)}
+          style={{ width: 15, height: 15, accentColor: "#22c55e", cursor: "pointer" }}
+        />
+        Complete
+      </label>
+    </span>
+  );
+}
+
 function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
   const filtered = records.filter(r =>
     !search || Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())
@@ -891,12 +948,13 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               <Fragment key={r.id}>
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0 }}>
                 {/* Record header bar */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
-                  <span style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "8px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                  <span style={{ fontWeight: 700, fontSize: 13, color: "#fff", whiteSpace: "nowrap" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                     {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
                   </span>
-                  <button onClick={() => onRemove(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}>✕ Delete</button>
+                  <RecordTimer r={r} onUpdate={onUpdate} />
+                  <button onClick={() => onRemove(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600, marginLeft: "auto" }}>✕ Delete</button>
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   {INS_ROWS.map((row, bank) => (
