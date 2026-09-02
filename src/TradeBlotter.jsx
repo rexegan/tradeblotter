@@ -386,7 +386,7 @@ const SAMPLE_INSURANCE = [
 
 const INS_ROWS = [
   { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8%", lastName: "11%", middleInitial: "8.3%", firstName: "10.2%", fundsComingFrom: "10%", currentAccountType: "8.5%", currentAssetClass: "9.3%", currentPolicyNumber: "8%", receivingFirm: "11%", ticker: "8.5%" } },
-  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "19%", checkNumber: "6%", docsReceived: "12%", trackingNumber: "13.5%", dateFunded: "8.5%", newPolicyNumber: "22%" } },
+  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "19%", checkNumber: "6%", docsReceived: "12%", trackingNumber: "13.5%", dateFunded: "8.5%", newPolicyNumber: "8.5%" }, filler: true },
   { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "5.5%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "10%", commissionPaidDate: "10%", crmUpdated: "10.5%", notes: "44%" } },
 ];
 
@@ -905,6 +905,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                           {row.cols.map(c => (
                             <th key={c.key} style={{ width: row.widths[c.key], padding: "9px 10px", textAlign: "left", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: `1px solid ${COLORS.border}`, borderRight: "1px solid rgba(255,255,255,0.85)", whiteSpace: "normal", verticalAlign: "top" }}>{STACKED_HEADERS[c.key] ? <>{STACKED_HEADERS[c.key][0]}<br />{STACKED_HEADERS[c.key][1]}</> : c.label}</th>
                           ))}
+                          {row.filler && <th style={{ borderBottom: `1px solid ${COLORS.border}` }} />}
                         </tr>
                         <tr>
                           {row.cols.map(c => (
@@ -940,6 +941,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                                 )}
                               </td>
                           ))}
+                          {row.filler && <td style={{ borderBottom: `1px solid ${COLORS.border}` }} />}
                         </tr>
                       </tbody>
                     </table>
