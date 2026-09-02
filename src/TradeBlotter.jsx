@@ -890,14 +890,7 @@ function RecordTimer({ r, onUpdate }) {
           />
           Docs Received
         </label>
-        <select
-          value={r.docsReceived || ""}
-          onChange={e => onUpdate(r.id, "docsReceived", e.target.value)}
-          style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.4)", background: "#fff", color: "#000", width: "100%", cursor: "pointer" }}
-        >
-          <option value=""></option>
-          {INS_DOCS_STATUS.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.08em", paddingLeft: 18 }}>IGO</span>
       </span>
       <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         <input
