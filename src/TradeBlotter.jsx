@@ -885,7 +885,26 @@ function RecordTimer({ r, onUpdate }) {
         </span>
       ))}
       {done && <span style={{ fontSize: 11, fontWeight: 800, color: "#4ade80", letterSpacing: "0.05em" }}>✓ COMPLETE</span>}
-      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2, marginLeft: 6 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+          <input
+            type="checkbox"
+            checked={(r.docsReceived || "") === "IGO"}
+            onChange={e => onUpdate(r.id, "docsReceived", e.target.checked ? "IGO" : "")}
+            style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
+          />
+          Docs Received
+        </label>
+        <select
+          value={r.docsReceived || ""}
+          onChange={e => onUpdate(r.id, "docsReceived", e.target.value)}
+          style={{ fontSize: 11, fontWeight: 700, padding: "1px 4px", borderRadius: 4, border: "1px solid rgba(255,255,255,0.4)", background: "#fff", color: "#000", width: "100%", cursor: "pointer" }}
+        >
+          <option value=""></option>
+          {INS_DOCS_STATUS.map(o => <option key={o} value={o}>{o}</option>)}
+        </select>
+      </span>
+      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", marginLeft: 6 }}>
         <input
           type="checkbox"
           checked={done}
