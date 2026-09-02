@@ -860,39 +860,51 @@ function elapsedParts(ms) {
 
 function RecordTimer({ r, onUpdate }) {
   const [now, setNow] = useState(Date.now());
-  const done = !!r.completedAt;
+  const funded = (r.dateFunded || "").trim() !== "";
+  const done = !!r.completedAt || funded;
   useEffect(() => {
     if (done) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
   }, [done]);
   const start = recCreatedAt(r);
-  const parts = start ? elapsedParts((done ? r.completedAt : now) - start) : null;
+  const parts = start ? elapsedParts((done ? (r.completedAt || now) : now) - start) : null;
   const boxBg = done ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.12)";
   const boxBorder = done ? "1px solid #22c55e" : "1px solid rgba(255,255,255,0.35)";
   const numColor = done ? "#86efac" : "#fff";
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      {start && (
-        <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.navyMuted, letterSpacing: "0.06em", textTransform: "uppercase" }}>
-          Entered {new Date(start).toLocaleDateString("en-US", { month: "2-digit", day: "2-digit" })}
-        </span>
-      )}
       {parts && [["Days", parts.d], ["Hrs", parts.h], ["Min", parts.m], ["Sec", parts.s]].map(([lbl, val]) => (
         <span key={lbl} style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 34, padding: "2px 6px", borderRadius: 5, background: boxBg, border: boxBorder }}>
           <span style={{ fontFamily: "ui-monospace, Menlo, Consolas, monospace", fontSize: 13, fontWeight: 900, lineHeight: "15px", color: numColor }}>{String(val).padStart(2, "0")}</span>
           <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.navyMuted }}>{lbl}</span>
         </span>
       ))}
-      {done && <span style={{ fontSize: 11, fontWeight: 800, color: "#4ade80", letterSpacing: "0.05em" }}>✓ COMPLETE</span>}
       <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         <input
           type="checkbox"
-          checked={done}
-          onChange={e => onUpdate(r.id, "completedAt", e.target.checked ? Date.now() : null)}
+          checked={!!r.docsReceivedChecked}
+          onChange={e => onUpdate(r.id, "docsReceivedChecked", e.target.checked)}
           style={{ width: 15, height: 15, accentColor: "#22c55e", cursor: "pointer" }}
         />
-        Complete
+        Docs Received
+      </label>
+      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+        <input
+          type="checkbox"
+          checked={funded}
+          onChange={e => {
+            if (e.target.checked) {
+              onUpdate(r.id, "dateFunded", new Date().toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" }));
+              onUpdate(r.id, "completedAt", Date.now());
+            } else {
+              onUpdate(r.id, "dateFunded", "");
+              onUpdate(r.id, "completedAt", null);
+            }
+          }}
+          style={{ width: 15, height: 15, accentColor: "#22c55e", cursor: "pointer" }}
+        />
+        Date Funded
       </label>
     </span>
   );
