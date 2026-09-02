@@ -358,8 +358,8 @@ const INS_COLUMNS = [
   { key: "currentAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
   { key: "currentAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "currentPolicyNumber", label: "Policy or Account #", w: 140 },
-  { key: "receivingFirm", label: "Receiving Firm", w: 120, options: INS_INSTITUTIONS },
   { key: "ticker", label: "Ticker Symbol", w: 100 },
+  { key: "receivingFirm", label: "Receiving Firm", w: 120, options: INS_INSTITUTIONS },
   { key: "newAccountType", label: "Account Type", w: 110, options: INS_ACCT_TYPES },
   { key: "newAssetClass", label: "Asset Class", w: 110, options: INS_ASSET_CLASSES },
   { key: "fundingMethod", label: "Funding Method", w: 110, options: INS_FUNDING_METHODS },
@@ -385,8 +385,8 @@ const SAMPLE_INSURANCE = [
 ];
 
 const INS_ROWS = [
-  { cols: INS_COLUMNS.slice(0, 11), widths: { date: "7.2%", amount: "8%", lastName: "11%", middleInitial: "8.3%", firstName: "10.2%", fundsComingFrom: "10%", currentAccountType: "8.5%", currentAssetClass: "9.3%", currentPolicyNumber: "8%", receivingFirm: "11%", ticker: "8.5%" } },
-  { cols: INS_COLUMNS.slice(11, 19), widths: { newAccountType: "9.5%", newAssetClass: "9.5%", fundingMethod: "15.5%", checkNumber: "6%", docsReceived: "12%", trackingNumber: "13.5%", dateFunded: "8.5%", newPolicyNumber: "8.5%" }, filler: true },
+  { cols: INS_COLUMNS.slice(0, 10), widths: { date: "7.2%", amount: "8%", lastName: "11%", middleInitial: "8.3%", firstName: "10.2%", fundsComingFrom: "10%", currentAccountType: "8.5%", currentAssetClass: "9.3%", currentPolicyNumber: "8%", ticker: "8.5%" }, filler: true },
+  { cols: INS_COLUMNS.slice(10, 19), widths: { receivingFirm: "12%", newAccountType: "10%", newAssetClass: "10%", fundingMethod: "16.5%", checkNumber: "6.5%", docsReceived: "13%", trackingNumber: "14%", dateFunded: "9%", newPolicyNumber: "9%" } },
   { cols: INS_COLUMNS.slice(19), widths: { bankDraft: "5.5%", draftStartDate: "10%", monthlyAmount: "10%", datePolicyDelivered: "10%", commissionPaidDate: "10%", crmUpdated: "10.5%", notes: "44%" } },
 ];
 
