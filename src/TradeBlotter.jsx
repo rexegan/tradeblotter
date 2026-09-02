@@ -880,7 +880,7 @@ function RecordTimer({ r, onUpdate }) {
           <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.navyMuted }}>{lbl}</span>
         </span>
       ))}
-      <span style={{ display: "flex", flexDirection: "column", alignItems: "flex-start", gap: 2 }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
           <input
             type="checkbox"
@@ -890,7 +890,7 @@ function RecordTimer({ r, onUpdate }) {
           />
           Docs Received
         </label>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.08em", paddingLeft: 18 }}>IGO</span>
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.08em" }}>IGO</span>
       </span>
       <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         <input
