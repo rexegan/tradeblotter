@@ -913,10 +913,27 @@ function RecordTimer({ r, onUpdate }) {
   );
 }
 
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function recMonthYear(r) {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec((r.date || "").trim());
+  return m ? { month: +m[1], year: +m[3] } : null;
+}
+
 function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
-  const filtered = records.filter(r =>
-    !search || Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())
-  );
+  const [filterMonth, setFilterMonth] = useState("");
+  const [filterYear, setFilterYear] = useState("");
+  const years = Array.from(new Set([new Date().getFullYear(), ...records.map(r => recMonthYear(r)?.year).filter(Boolean)])).sort((a, b) => b - a);
+  const filtered = records.filter(r => {
+    if (search && !Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterMonth || filterYear) {
+      const my = recMonthYear(r);
+      if (!my) return false;
+      if (filterMonth && my.month !== +filterMonth) return false;
+      if (filterYear && my.year !== +filterYear) return false;
+    }
+    return true;
+  });
   return (
     <>
             {/* Summary Cards */}
@@ -949,6 +966,22 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: COLORS.primary, color: "#fff", border: `1px solid ${COLORS.primary}` }}>
                 + Add Record
               </button>
+              <select
+                value={filterMonth}
+                onChange={e => setFilterMonth(e.target.value)}
+                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                <option value="">All Months</option>
+                {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+              </select>
+              <select
+                value={filterYear}
+                onChange={e => setFilterYear(e.target.value)}
+                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                <option value="">All Years</option>
+                {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
                 {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
               </div>
