@@ -892,7 +892,8 @@ function RecordTimer({ r, onUpdate }) {
         </label>
         <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.08em" }}>IGO</span>
       </span>
-      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 700, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+      <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
         <input
           type="checkbox"
           checked={funded}
@@ -905,10 +906,12 @@ function RecordTimer({ r, onUpdate }) {
               onUpdate(r.id, "completedAt", null);
             }
           }}
-          style={{ width: 15, height: 15, accentColor: "#22c55e", cursor: "pointer" }}
+          style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
         />
         Date Funded
       </label>
+      <span style={{ fontSize: 11, fontWeight: 800, visibility: "hidden" }}>·</span>
+      </span>
     </span>
   );
 }
@@ -996,13 +999,16 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               <Fragment key={r.id}>
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0 }}>
                 {/* Record header bar */}
-                <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "8px 16px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                <div style={{ padding: "6px 16px 8px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
+                <div style={{ minHeight: 26 }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff", whiteSpace: "nowrap" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                     {r.date ? <span style={{ fontWeight: 400, color: COLORS.navyMuted }}> · {r.date}</span> : null}
                   </span>
                   <RecordTimer r={r} onUpdate={onUpdate} />
                   <button onClick={() => onRemove(r.id)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "4px 12px", fontSize: 11, cursor: "pointer", fontWeight: 600, marginLeft: "auto" }}>✕ Delete</button>
+                </div>
                 </div>
                 <div style={{ overflowX: "auto" }}>
                   {INS_ROWS.map((row, bank) => (
