@@ -937,9 +937,28 @@ function recMonthYear(r) {
   return m ? { month: +m[1], year: +m[3] } : null;
 }
 
+const VIEW_BY_PRODUCTS = [
+  { label: "Mutual Funds", match: ["mutual fund"] },
+  { label: "Stocks", match: ["stock"] },
+  { label: "Bonds", match: ["bond"] },
+  { label: "ETFs", match: ["etf"] },
+  { label: "ALTs", match: ["alternative"] },
+  { label: "FIAs", match: ["fia", "fixed indexed"] },
+  { label: "VAs", match: ["variable annuity"] },
+  { label: "529s", match: ["529"] },
+  { label: "Annuities", match: ["annuit"] },
+  { label: "Life Insurance", match: ["life insurance"] },
+  { label: "CDs", match: ["cd"] },
+  { label: "Money Market", match: ["money market"] },
+  { label: "Real Estate", match: ["real estate"] },
+  { label: "Cash", match: ["cash"] },
+];
+
 function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
+  const [reportStatus, setReportStatus] = useState("");
+  const [viewBy, setViewBy] = useState("");
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -952,6 +971,16 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
       if (!my) return false;
       if (filterMonth && my.month !== +filterMonth) return false;
       if (filterYear && my.year !== +filterYear) return false;
+    }
+    if (reportStatus) {
+      const funded = (r.dateFunded || "").trim() !== "" || !!r.completedAt;
+      if (reportStatus === "outstanding" && funded) return false;
+      if (reportStatus === "funded" && !funded) return false;
+    }
+    if (viewBy) {
+      const opt = VIEW_BY_PRODUCTS.find(v => v.label === viewBy);
+      const hay = Object.values(r).join(" ").toLowerCase();
+      if (opt && !opt.match.some(m => hay.includes(m))) return false;
     }
     return true;
   });
@@ -1002,6 +1031,24 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               >
                 <option value="">All Years</option>
                 {years.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+              <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginLeft: 10 }}>Reports</span>
+              <select
+                value={reportStatus}
+                onChange={e => setReportStatus(e.target.value)}
+                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                <option value="">All Trades</option>
+                <option value="outstanding">Outstanding — Not Yet Funded</option>
+                <option value="funded">Funded</option>
+              </select>
+              <select
+                value={viewBy}
+                onChange={e => setViewBy(e.target.value)}
+                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                <option value="">View By: All Products</option>
+                {VIEW_BY_PRODUCTS.map(v => <option key={v.label} value={v.label}>{v.label}</option>)}
               </select>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
                 {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
