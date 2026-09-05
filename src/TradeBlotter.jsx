@@ -1,4 +1,4 @@
-import { useState, useEffect, Fragment } from "react";
+import { useState, useEffect, useRef, Fragment } from "react";
 
 const COLORS = {
   bg: "#fafafa",
@@ -1000,7 +1000,16 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
   const [filterYear, setFilterYear] = useState("");
   const [reportStatus, setReportStatus] = useState("");
   const [viewBy, setViewBy] = useState("");
-  const [quickView, setQuickView] = useState("");
+  const [qvOpen, setQvOpen] = useState(false);
+  const [qvFields, setQvFields] = useState([]);
+  const qvRef = useRef(null);
+  useEffect(() => {
+    if (!qvOpen) return;
+    const handler = e => { if (qvRef.current && !qvRef.current.contains(e.target)) setQvOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [qvOpen]);
+  const toggleQvField = label => setQvFields(fs => fs.includes(label) ? fs.filter(f => f !== label) : [...fs, label]);
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -1092,46 +1101,69 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 <option value="">Asset Class</option>
                 {VIEW_BY_PRODUCTS.map(v => <option key={v.label} value={v.label}>{v.label}</option>)}
               </select>
-              <select
-                value={quickView}
-                onChange={e => setQuickView(e.target.value)}
-                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
-              >
-                <option value="">Quick View</option>
-                {QUICK_VIEW_FIELDS.map(f => <option key={f.label} value={f.label}>{f.label}</option>)}
-              </select>
+              <span ref={qvRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setQvOpen(o => !o)}
+                  style={{ background: qvFields.length ? COLORS.primary : COLORS.bgInput, border: `1px solid ${qvFields.length ? COLORS.primary : COLORS.border}`, borderRadius: 6, color: qvFields.length ? "#fff" : COLORS.text, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                >
+                  Quick View{qvFields.length ? ` (${qvFields.length})` : ""} ▾
+                </button>
+                {qvOpen && (
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 12px", minWidth: 230 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Show columns</span>
+                      <span style={{ display: "flex", gap: 10 }}>
+                        <button onClick={() => setQvFields(QUICK_VIEW_FIELDS.map(f => f.label))} style={{ background: "none", border: "none", color: COLORS.accent, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>All</button>
+                        <button onClick={() => setQvFields([])} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
+                      </span>
+                    </div>
+                    {QUICK_VIEW_FIELDS.map(f => (
+                      <label key={f.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
+                        <input type="checkbox" checked={qvFields.includes(f.label)} onChange={() => toggleQvField(f.label)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                        {f.label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </span>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
                 {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
               </div>
             </div>
 
             {/* Quick View panel */}
-            {quickView && (() => {
-              const f = QUICK_VIEW_FIELDS.find(x => x.label === quickView);
+            {qvFields.length > 0 && (() => {
+              const cols = QUICK_VIEW_FIELDS.filter(f => qvFields.includes(f.label));
               const rows = [...filtered].sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
               return (
                 <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
                   <div style={{ background: COLORS.primary, color: "#fff", fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", padding: "9px 14px" }}>
-                    Quick View — {quickView}
+                    Quick View
                   </div>
+                  <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                       <tr style={{ background: "#2a5794" }}>
-                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "50%" }}>Client</th>
-                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{quickView}</th>
+                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Client</th>
+                        {cols.map(f => (
+                          <th key={f.label} style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</th>
+                        ))}
                       </tr>
                     </thead>
                     <tbody>
                       {rows.map((r, i) => (
                         <tr key={r.id} style={{ background: i % 2 ? "#eef2f7" : "#fff" }}>
-                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>
+                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0", whiteSpace: "nowrap" }}>
                             {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                           </td>
-                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{f.get(r)}</td>
+                          {cols.map(f => (
+                            <td key={f.label} style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{f.get(r)}</td>
+                          ))}
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </div>
                 </div>
               );
             })()}
