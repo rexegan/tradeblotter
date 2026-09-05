@@ -1076,7 +1076,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 onChange={e => setViewBy(e.target.value)}
                 style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
-                <option value="">All Products</option>
+                <option value="">Asset Class</option>
                 {VIEW_BY_PRODUCTS.map(v => <option key={v.label} value={v.label}>{v.label}</option>)}
               </select>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
