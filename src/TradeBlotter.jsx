@@ -889,9 +889,9 @@ function RecordTimer({ r, onUpdate }) {
             onChange={e => onUpdate(r.id, "tradeEnteredAt", e.target.checked ? Date.now() : null)}
             style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
           />
-          Trade Entered
+          Trade
         </label>
-        <span style={{ fontSize: 11, fontWeight: 800, visibility: "hidden" }}>·</span>
+        <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: "0.05em" }}>Entered</span>
       </span>
       <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
