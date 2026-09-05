@@ -966,6 +966,18 @@ function recMonthYear(r) {
   return m ? { month: +m[1], year: +m[3] } : null;
 }
 
+const QUICK_VIEW_FIELDS = [
+  { label: "Account Open Date", get: r => r.dateFunded || "—" },
+  { label: "Dollar Amount", get: r => r.amount || "—" },
+  { label: "Qualified / Non-Qualified", get: r => r.qualified || "—" },
+  { label: "Funds Coming From", get: r => r.fundsComingFrom || "—" },
+  { label: "Account Type", get: r => r.newAccountType || r.currentAccountType || "—" },
+  { label: "Asset Class", get: r => r.newAssetClass || r.currentAssetClass || "—" },
+  { label: "Receiving Firm", get: r => r.receivingFirm || "—" },
+  { label: "Funding Method", get: r => r.fundingMethod || "—" },
+  { label: "Bank Draft", get: r => r.bankDraft || "No" },
+];
+
 const VIEW_BY_PRODUCTS = [
   { label: "Mutual Funds", match: ["mutual fund"] },
   { label: "Stocks", match: ["stock"] },
@@ -988,6 +1000,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
   const [filterYear, setFilterYear] = useState("");
   const [reportStatus, setReportStatus] = useState("");
   const [viewBy, setViewBy] = useState("");
+  const [quickView, setQuickView] = useState("");
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -1079,10 +1092,49 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 <option value="">Asset Class</option>
                 {VIEW_BY_PRODUCTS.map(v => <option key={v.label} value={v.label}>{v.label}</option>)}
               </select>
+              <select
+                value={quickView}
+                onChange={e => setQuickView(e.target.value)}
+                style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+              >
+                <option value="">Quick View</option>
+                {QUICK_VIEW_FIELDS.map(f => <option key={f.label} value={f.label}>{f.label}</option>)}
+              </select>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
                 {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
               </div>
             </div>
+
+            {/* Quick View panel */}
+            {quickView && (() => {
+              const f = QUICK_VIEW_FIELDS.find(x => x.label === quickView);
+              const rows = [...filtered].sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+              return (
+                <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
+                  <div style={{ background: COLORS.primary, color: "#fff", fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", padding: "9px 14px" }}>
+                    Quick View — {quickView}
+                  </div>
+                  <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ background: "#2a5794" }}>
+                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "50%" }}>Client</th>
+                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{quickView}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((r, i) => (
+                        <tr key={r.id} style={{ background: i % 2 ? "#eef2f7" : "#fff" }}>
+                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>
+                            {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                          </td>
+                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{f.get(r)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              );
+            })()}
 
             {/* Records — one card per trade, two sleeves each */}
             {filtered.length === 0 ? (
