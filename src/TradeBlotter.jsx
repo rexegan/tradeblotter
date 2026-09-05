@@ -349,7 +349,7 @@ const trackingUrl = (raw) => {
 };
 
 const INS_COLUMNS = [
-  { key: "date", label: "Date", w: 95, type: "date" },
+  { key: "date", label: "Date Docs Signed", w: 95, type: "date" },
   { key: "amount", label: "Amount", w: 90, type: "money" },
   { key: "qualified", label: "Q/NQ", w: 70, options: ["Q", "NQ"] },
   { key: "lastName", label: "Last Name", w: 110 },
@@ -392,6 +392,7 @@ const INS_ROWS = [
 ];
 
 const STACKED_HEADERS = {
+  date: ["Date Docs", "Signed"],
   receivingFirm: ["Receiving", "Firm"],
   ticker: ["Ticker", "Symbol"],
   bankDraft: ["Bank", "Draft"],
