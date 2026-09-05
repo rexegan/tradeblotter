@@ -862,24 +862,37 @@ function RecordTimer({ r, onUpdate }) {
   const [now, setNow] = useState(Date.now());
   const funded = (r.dateFunded || "").trim() !== "";
   const done = !!r.completedAt || funded;
+  const entered = !!r.tradeEnteredAt;
   useEffect(() => {
-    if (done) return;
+    if (done || !entered) return;
     const t = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(t);
-  }, [done]);
-  const start = recCreatedAt(r);
-  const parts = start ? elapsedParts((done ? (r.completedAt || now) : now) - start) : null;
+  }, [done, entered]);
+  const start = r.tradeEnteredAt || null;
+  const parts = elapsedParts(start ? (done ? (r.completedAt || now) : now) - start : 0);
   const boxBg = done ? "rgba(34,197,94,0.25)" : "rgba(255,255,255,0.12)";
   const boxBorder = done ? "1px solid #22c55e" : "1px solid rgba(255,255,255,0.35)";
   const numColor = done ? "#86efac" : "#fff";
   return (
     <span style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-      {parts && [["Days", parts.d], ["Hrs", parts.h], ["Min", parts.m], ["Sec", parts.s]].map(([lbl, val]) => (
+      {[["Days", parts.d], ["Hrs", parts.h], ["Min", parts.m], ["Sec", parts.s]].map(([lbl, val]) => (
         <span key={lbl} style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: 34, padding: "2px 6px", borderRadius: 5, background: boxBg, border: boxBorder }}>
           <span style={{ fontFamily: "ui-monospace, Menlo, Consolas, monospace", fontSize: 13, fontWeight: 900, lineHeight: "15px", color: numColor }}>{String(val).padStart(2, "0")}</span>
           <span style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: COLORS.navyMuted }}>{lbl}</span>
         </span>
       ))}
+      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+        <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
+          <input
+            type="checkbox"
+            checked={entered}
+            onChange={e => onUpdate(r.id, "tradeEnteredAt", e.target.checked ? Date.now() : null)}
+            style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
+          />
+          Trade Entered
+        </label>
+        <span style={{ fontSize: 11, fontWeight: 800, visibility: "hidden" }}>·</span>
+      </span>
       <span style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
         <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
           <input
