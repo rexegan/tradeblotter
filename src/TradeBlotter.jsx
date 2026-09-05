@@ -1011,6 +1011,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
     return () => document.removeEventListener("mousedown", handler);
   }, [qvOpen]);
   const toggleQvField = label => setQvFields(fs => fs.includes(label) ? fs.filter(f => f !== label) : [...fs, label]);
+  const [qvSortDesc, setQvSortDesc] = useState(false);
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -1135,7 +1136,10 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
             {/* Quick View panel */}
             {qvFields.length > 0 && (() => {
               const cols = QUICK_VIEW_FIELDS.filter(f => qvFields.includes(f.label));
-              const rows = [...filtered].sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+              const rows = [...filtered].sort((a, b) => {
+                const cmp = (a.lastName || "").localeCompare(b.lastName || "");
+                return qvSortDesc ? -cmp : cmp;
+              });
               return (
                 <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
                   <div style={{ background: COLORS.primary, color: "#fff", fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", padding: "9px 14px" }}>
@@ -1145,7 +1149,13 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
                     <thead>
                       <tr style={{ background: "#2a5794" }}>
-                        <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Client</th>
+                        <th
+                          onClick={() => setQvSortDesc(d => !d)}
+                          title="Click to flip alphabetical order"
+                          style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer", userSelect: "none" }}
+                        >
+                          Client <span style={{ fontWeight: 900 }}>{qvSortDesc ? "Z–A ▼" : "A–Z ▲"}</span>
+                        </th>
                         {cols.map(f => (
                           <th key={f.label} style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.head ? <>{f.head[0]}<br />{f.head[1]}</> : f.label}</th>
                         ))}
