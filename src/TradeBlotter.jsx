@@ -967,15 +967,16 @@ function recMonthYear(r) {
 }
 
 const QUICK_VIEW_FIELDS = [
-  { label: "Account Open Date", get: r => r.dateFunded || "—" },
+  { label: "Open Date", get: r => r.dateFunded || "—" },
   { label: "Dollar Amount", get: r => r.amount || "—" },
-  { label: "Qualified / Non-Qualified", get: r => r.qualified || "—" },
+  { label: "Q/NQ", head: ["Q", "NQ"], get: r => r.qualified || "—" },
   { label: "Funds Coming From", get: r => r.fundsComingFrom || "—" },
   { label: "Account Type", get: r => r.newAccountType || r.currentAccountType || "—" },
-  { label: "Asset Class", get: r => r.newAssetClass || r.currentAssetClass || "—" },
+  { label: "Asset Class", head: ["Asset", "Class"], get: r => r.newAssetClass || r.currentAssetClass || "—" },
   { label: "Receiving Firm", get: r => r.receivingFirm || "—" },
   { label: "Funding Method", get: r => r.fundingMethod || "—" },
   { label: "Bank Draft", get: r => r.bankDraft || "No" },
+  { label: "Draft $ AMT", get: r => r.monthlyAmount || "—" },
 ];
 
 const VIEW_BY_PRODUCTS = [
@@ -1146,7 +1147,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                       <tr style={{ background: "#2a5794" }}>
                         <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Client</th>
                         {cols.map(f => (
-                          <th key={f.label} style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.label}</th>
+                          <th key={f.label} style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.head ? <>{f.head[0]}<br />{f.head[1]}</> : f.label}</th>
                         ))}
                       </tr>
                     </thead>
