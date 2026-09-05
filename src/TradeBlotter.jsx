@@ -1067,8 +1067,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 onChange={e => setReportStatus(e.target.value)}
                 style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
-                <option value="">All Trades</option>
-                <option value="outstanding">Outstanding — Not Yet Funded</option>
+                <option value="">Trades</option>
+                <option value="outstanding">Not Funded</option>
                 <option value="funded">Funded</option>
               </select>
               <select
@@ -1076,7 +1076,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 onChange={e => setViewBy(e.target.value)}
                 style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
               >
-                <option value="">View By: All Products</option>
+                <option value="">All Products</option>
                 {VIEW_BY_PRODUCTS.map(v => <option key={v.label} value={v.label}>{v.label}</option>)}
               </select>
               <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
