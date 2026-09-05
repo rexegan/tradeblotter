@@ -901,7 +901,7 @@ function RecordTimer({ r, onUpdate }) {
             onChange={e => onUpdate(r.id, "docsReceivedChecked", e.target.checked)}
             style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
           />
-          Docs Received
+          Received
         </label>
         <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: "0.08em" }}>IGO</span>
       </span>
