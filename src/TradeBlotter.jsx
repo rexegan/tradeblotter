@@ -921,9 +921,9 @@ function RecordTimer({ r, onUpdate }) {
           }}
           style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
         />
-        Date Funded
+        Date
       </label>
-      <span style={{ fontSize: 11, fontWeight: 800, visibility: "hidden" }}>·</span>
+      <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: "0.05em" }}>Funded</span>
       </span>
     </span>
   );
