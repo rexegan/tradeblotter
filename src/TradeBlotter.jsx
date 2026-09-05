@@ -926,7 +926,11 @@ function recMonthYear(r) {
 function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
-  const years = Array.from(new Set([new Date().getFullYear(), ...records.map(r => recMonthYear(r)?.year).filter(Boolean)])).sort((a, b) => b - a);
+  const thisYear = new Date().getFullYear();
+  const years = Array.from(new Set([
+    ...Array.from({ length: 11 }, (_, i) => thisYear - i),
+    ...records.map(r => recMonthYear(r)?.year).filter(Boolean),
+  ])).sort((a, b) => b - a);
   const filtered = records.filter(r => {
     if (search && !Object.values(r).join(" ").toLowerCase().includes(search.toLowerCase())) return false;
     if (filterMonth || filterYear) {
