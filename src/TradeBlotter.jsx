@@ -976,7 +976,7 @@ const QUICK_VIEW_FIELDS = [
   { label: "Receiving Firm", get: r => r.receivingFirm || "—" },
   { label: "Funding Method", get: r => r.fundingMethod || "—" },
   { label: "Bank Draft", get: r => r.bankDraft || "No" },
-  { label: "MO. Draft $ AMT", get: r => r.monthlyAmount || "—" },
+  { label: "Mo. Draft $ AMT", get: r => r.monthlyAmount || "—" },
 ];
 
 const VIEW_BY_PRODUCTS = [
