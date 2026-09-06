@@ -1012,6 +1012,26 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
   }, [qvOpen]);
   const toggleQvField = label => setQvFields(fs => fs.includes(label) ? fs.filter(f => f !== label) : [...fs, label]);
   const [qvSort, setQvSort] = useState("");
+  const [rpOpen, setRpOpen] = useState(false);
+  const [rpSelected, setRpSelected] = useState([]);
+  const rpRef = useRef(null);
+  useEffect(() => {
+    if (!rpOpen) return;
+    const handler = e => { if (rpRef.current && !rpRef.current.contains(e.target)) setRpOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [rpOpen]);
+  const toggleRp = key => setRpSelected(ks => ks.includes(key) ? ks.filter(k => k !== key) : [...ks, key]);
+  const reportRows = key => {
+    const kind = key.slice(0, 1), name = key.slice(2);
+    return filtered.filter(r => {
+      if (kind === "a") return r.newAccountType === name || r.currentAccountType === name;
+      const opt = VIEW_BY_PRODUCTS.find(v => v.label === name);
+      if (!opt) return false;
+      const hay = Object.values(r).join(" ").toLowerCase();
+      return opt.match.some(m => hay.includes(m));
+    });
+  };
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -1128,9 +1148,36 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   </div>
                 )}
               </span>
-              <div style={{ marginLeft: "auto", fontSize: 12, color: COLORS.textMuted }}>
-                {filtered.length} record{filtered.length !== 1 ? "s" : ""} · click any cell to edit
-              </div>
+              <span ref={rpRef} style={{ position: "relative" }}>
+                <button
+                  onClick={() => setRpOpen(o => !o)}
+                  style={{ background: rpSelected.length ? COLORS.primary : COLORS.bgInput, border: `1px solid ${rpSelected.length ? COLORS.primary : COLORS.border}`, borderRadius: 6, color: rpSelected.length ? "#fff" : COLORS.text, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                >
+                  Reports{rpSelected.length ? ` (${rpSelected.length})` : ""} ▾
+                </button>
+                {rpOpen && (
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 12px", minWidth: 250, maxHeight: 420, overflowY: "auto" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Run reports for</span>
+                      <button onClick={() => setRpSelected([])} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
+                    </div>
+                    <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0" }}>Asset Classes & Products</div>
+                    {VIEW_BY_PRODUCTS.map(v => (
+                      <label key={v.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
+                        <input type="checkbox" checked={rpSelected.includes("p:" + v.label)} onChange={() => toggleRp("p:" + v.label)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                        {v.label}
+                      </label>
+                    ))}
+                    <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", margin: "8px 0 4px" }}>Account Types</div>
+                    {INS_ACCT_TYPES.map(t => (
+                      <label key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
+                        <input type="checkbox" checked={rpSelected.includes("a:" + t)} onChange={() => toggleRp("a:" + t)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                        {t}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </span>
             </div>
 
             {/* Quick View panel */}
@@ -1189,6 +1236,49 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                 </div>
               );
             })()}
+
+            {/* Reports panels */}
+            {rpSelected.map(key => {
+              const name = key.slice(2);
+              const rows = reportRows(key).sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+              const total = rows.reduce((sum, r) => sum + money(r.amount), 0);
+              return (
+                <div key={key} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: COLORS.primary, color: "#fff", padding: "9px 14px" }}>
+                    <span style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Report — {name}</span>
+                    <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.navyMuted }}>{rows.length} client{rows.length !== 1 ? "s" : ""} · ${total.toLocaleString("en-US")}</span>
+                  </div>
+                  {rows.length === 0 ? (
+                    <div style={{ padding: "12px 14px", fontSize: 13, color: COLORS.textMuted }}>No clients found for {name}.</div>
+                  ) : (
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <thead>
+                        <tr style={{ background: "#2a5794" }}>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "34%" }}>Client</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Account Open Amount</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Open Date</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Account Type</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Asset Class</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {rows.map((r, i) => (
+                          <tr key={r.id} style={{ background: i % 2 ? "#eef2f7" : "#fff" }}>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>
+                              {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                            </td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.amount || "—"}</td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.dateFunded || "—"}</td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.newAccountType || r.currentAccountType || "—"}</td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.newAssetClass || r.currentAssetClass || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              );
+            })}
 
             {/* Records — one card per trade, two sleeves each */}
             {filtered.length === 0 ? (
