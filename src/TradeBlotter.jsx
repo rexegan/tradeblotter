@@ -890,7 +890,7 @@ function elapsedParts(ms) {
 
 function RecordTimer({ r, onUpdate }) {
   const [now, setNow] = useState(Date.now());
-  const funded = (r.dateFunded || "").trim() !== "";
+  const funded = /^\d{1,2}\/\d{1,2}\/\d{4}$/.test((r.dateFunded || "").trim());
   const done = !!r.completedAt || funded;
   const entered = !!r.tradeEnteredAt;
   useEffect(() => {
@@ -951,9 +951,9 @@ function RecordTimer({ r, onUpdate }) {
           }}
           style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
         />
-        Date
+        Funded
       </label>
-      <span style={{ fontSize: 10, fontWeight: 800, color: "#fff", textTransform: "uppercase", letterSpacing: "0.05em" }}>Funded</span>
+      <span style={{ fontSize: 11, fontWeight: 800, visibility: "hidden" }}>·</span>
       </span>
     </span>
   );
