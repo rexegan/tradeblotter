@@ -968,7 +968,7 @@ function recMonthYear(r) {
 
 const QUICK_VIEW_FIELDS = [
   { label: "Open Date", get: r => r.dateFunded || "—" },
-  { label: "Dollar Amount", get: r => r.amount || "—" },
+  { label: "Account Open Amount", get: r => r.amount || "—" },
   { label: "Q/NQ", head: ["Q", "NQ"], get: r => r.qualified || "—" },
   { label: "Funds Coming From", get: r => r.fundsComingFrom || "—" },
   { label: "Account Type", get: r => r.newAccountType || r.currentAccountType || "—" },
@@ -976,7 +976,7 @@ const QUICK_VIEW_FIELDS = [
   { label: "Receiving Firm", get: r => r.receivingFirm || "—" },
   { label: "Funding Method", get: r => r.fundingMethod || "—" },
   { label: "Bank Draft", get: r => r.bankDraft || "No" },
-  { label: "Draft $ AMT", get: r => r.monthlyAmount || "—" },
+  { label: "MO. Draft $ AMT", get: r => r.monthlyAmount || "—" },
 ];
 
 const VIEW_BY_PRODUCTS = [
