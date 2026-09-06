@@ -1011,7 +1011,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
     return () => document.removeEventListener("mousedown", handler);
   }, [qvOpen]);
   const toggleQvField = label => setQvFields(fs => fs.includes(label) ? fs.filter(f => f !== label) : [...fs, label]);
-  const [qvSortDesc, setQvSortDesc] = useState(false);
+  const [qvSort, setQvSort] = useState("");
   const thisYear = new Date().getFullYear();
   const years = Array.from(new Set([
     ...Array.from({ length: 11 }, (_, i) => thisYear - i),
@@ -1136,9 +1136,20 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
             {/* Quick View panel */}
             {qvFields.length > 0 && (() => {
               const cols = QUICK_VIEW_FIELDS.filter(f => qvFields.includes(f.label));
+              const openTs = r => {
+                const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec((r.dateFunded || "").trim());
+                return m ? new Date(+m[3], +m[1] - 1, +m[2]).getTime() : null;
+              };
               const rows = [...filtered].sort((a, b) => {
-                const cmp = (a.lastName || "").localeCompare(b.lastName || "");
-                return qvSortDesc ? -cmp : cmp;
+                if (qvSort) {
+                  const cmp = (a.lastName || "").localeCompare(b.lastName || "");
+                  return qvSort === "za" ? -cmp : cmp;
+                }
+                const ta = openTs(a), tb = openTs(b);
+                if (ta === null && tb === null) return 0;
+                if (ta === null) return 1;
+                if (tb === null) return -1;
+                return tb - ta;
               });
               return (
                 <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
@@ -1150,11 +1161,11 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                     <thead>
                       <tr style={{ background: "#2a5794" }}>
                         <th
-                          onClick={() => setQvSortDesc(d => !d)}
-                          title="Click to flip alphabetical order"
+                          onClick={() => setQvSort(v => v === "" ? "az" : v === "az" ? "za" : "")}
+                          title="Click to toggle: newest open date → A–Z → Z–A"
                           style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", cursor: "pointer", userSelect: "none" }}
                         >
-                          Client <span style={{ fontWeight: 900 }}>{qvSortDesc ? "Z–A ▼" : "A–Z ▲"}</span>
+                          Client <span style={{ fontWeight: 900 }}>{qvSort === "az" ? "A–Z ▲" : qvSort === "za" ? "Z–A ▼" : "⇅"}</span>
                         </th>
                         {cols.map(f => (
                           <th key={f.label} style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>{f.head ? <>{f.head[0]}<br />{f.head[1]}</> : f.label}</th>
