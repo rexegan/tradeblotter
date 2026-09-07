@@ -968,7 +968,7 @@ function recMonthYear(r) {
 
 const QUICK_VIEW_FIELDS = [
   { label: "Open Date", get: r => r.dateFunded || "—" },
-  { label: "Account Open Amount", get: r => r.amount || "—" },
+  { label: "Funding Amount", get: r => r.amount || "—" },
   { label: "Q/NQ", head: ["Q", "NQ"], get: r => r.qualified || "—" },
   { label: "Funds Coming From", get: r => r.fundsComingFrom || "—" },
   { label: "Account Type", get: r => r.newAccountType || r.currentAccountType || "—" },
@@ -1255,7 +1255,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                       <thead>
                         <tr style={{ background: "#2a5794" }}>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "34%" }}>Client</th>
-                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Account Open Amount</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Funding Amount</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Open Date</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Account Type</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Asset Class</th>
