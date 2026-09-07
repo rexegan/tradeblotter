@@ -1030,7 +1030,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
     setTimeout(() => setFlashId(f => (f === id ? null : f)), 2500);
   };
   const clientName = r => (r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record";
-  const clientLinkStyle = { color: COLORS.accent, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
+  const clientLinkStyle = { color: COLORS.primary, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
   const [rpFilters, setRpFilters] = useState({});
   const setRpFilter = (key, field, val) => setRpFilters(f => ({ ...f, [key]: { ...f[key], [field]: val } }));
   const reportRows = key => {
@@ -1073,8 +1073,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
             {/* Summary Cards */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 14, marginBottom: 24 }}>
               {[
-                { label: "Records", value: filtered.length, color: COLORS.accent },
-                { label: "Monthly Amounts", value: "$" + filtered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: "#7c3aed" },
+                { label: "Records", value: filtered.length, color: COLORS.primary },
+                { label: "Monthly Amounts", value: "$" + filtered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: COLORS.primary },
                 { label: "Funded", value: filtered.filter(r => (r.dateFunded || "").trim() !== "").length, color: COLORS.accentGreen },
                 { label: "Needs Attention", value: filtered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed },
               ].map(c => (
