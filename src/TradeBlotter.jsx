@@ -1022,6 +1022,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
     return () => document.removeEventListener("mousedown", handler);
   }, [rpOpen]);
   const toggleRp = key => setRpSelected(ks => ks.includes(key) ? ks.filter(k => k !== key) : [...ks, key]);
+  const [rpFilters, setRpFilters] = useState({});
+  const setRpFilter = (key, field, val) => setRpFilters(f => ({ ...f, [key]: { ...f[key], [field]: val } }));
   const reportRows = key => {
     const kind = key.slice(0, 1), name = key.slice(2);
     return filtered.filter(r => {
@@ -1156,25 +1158,31 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   Reports{rpSelected.length ? ` (${rpSelected.length})` : ""} ▾
                 </button>
                 {rpOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 12px", minWidth: 250, maxHeight: 420, overflowY: "auto" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 14px", minWidth: 380, maxHeight: 460, overflowY: "auto" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Run reports for</span>
                       <button onClick={() => setRpSelected([])} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
                     </div>
-                    <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", margin: "4px 0" }}>Asset Classes & Products</div>
-                    {VIEW_BY_PRODUCTS.map(v => (
-                      <label key={v.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
-                        <input type="checkbox" checked={rpSelected.includes("p:" + v.label)} onChange={() => toggleRp("p:" + v.label)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
-                        {v.label}
-                      </label>
-                    ))}
-                    <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", margin: "8px 0 4px" }}>Account Types</div>
-                    {INS_ACCT_TYPES.map(t => (
-                      <label key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
-                        <input type="checkbox" checked={rpSelected.includes("a:" + t)} onChange={() => toggleRp("a:" + t)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
-                        {t}
-                      </label>
-                    ))}
+                    <div style={{ display: "flex", gap: 20 }}>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Asset Class</div>
+                        {VIEW_BY_PRODUCTS.map(v => (
+                          <label key={v.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer", whiteSpace: "nowrap" }}>
+                            <input type="checkbox" checked={rpSelected.includes("p:" + v.label)} onChange={() => toggleRp("p:" + v.label)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                            {v.label}
+                          </label>
+                        ))}
+                      </div>
+                      <div>
+                        <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Account Types</div>
+                        {INS_ACCT_TYPES.map(t => (
+                          <label key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer", whiteSpace: "nowrap" }}>
+                            <input type="checkbox" checked={rpSelected.includes("a:" + t)} onChange={() => toggleRp("a:" + t)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                            {t}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
                   </div>
                 )}
               </span>
@@ -1240,13 +1248,30 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
             {/* Reports panels */}
             {rpSelected.map(key => {
               const name = key.slice(2);
-              const rows = reportRows(key).sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
+              const rf = rpFilters[key] || {};
+              const rows = reportRows(key).filter(r => {
+                if (!rf.month && !rf.year) return true;
+                const my = recMonthYear(r);
+                if (!my) return false;
+                if (rf.month && my.month !== +rf.month) return false;
+                if (rf.year && my.year !== +rf.year) return false;
+                return true;
+              }).sort((a, b) => (a.lastName || "").localeCompare(b.lastName || ""));
               const total = rows.reduce((sum, r) => sum + money(r.amount), 0);
+              const rpSelStyle = { background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 5, color: "#000", padding: "3px 6px", fontSize: 12, fontWeight: 600, cursor: "pointer" };
               return (
                 <div key={key} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: COLORS.primary, color: "#fff", padding: "9px 14px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, background: COLORS.primary, color: "#fff", padding: "7px 14px" }}>
                     <span style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>Report — {name}</span>
-                    <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.navyMuted }}>{rows.length} client{rows.length !== 1 ? "s" : ""} · ${total.toLocaleString("en-US")}</span>
+                    <select value={rf.month || ""} onChange={e => setRpFilter(key, "month", e.target.value)} style={rpSelStyle}>
+                      <option value="">All Months</option>
+                      {MONTH_NAMES.map((m, i) => <option key={m} value={i + 1}>{m}</option>)}
+                    </select>
+                    <select value={rf.year || ""} onChange={e => setRpFilter(key, "year", e.target.value)} style={rpSelStyle}>
+                      <option value="">All Years</option>
+                      {years.map(y => <option key={y} value={y}>{y}</option>)}
+                    </select>
+                    <span style={{ marginLeft: "auto", fontWeight: 700, fontSize: 12, color: COLORS.navyMuted }}>{rows.length} client{rows.length !== 1 ? "s" : ""} · ${total.toLocaleString("en-US")}</span>
                   </div>
                   {rows.length === 0 ? (
                     <div style={{ padding: "12px 14px", fontSize: 13, color: COLORS.textMuted }}>No clients found for {name}.</div>
