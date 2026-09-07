@@ -1158,7 +1158,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                   Reports{rpSelected.length ? ` (${rpSelected.length})` : ""} ▾
                 </button>
                 {rpOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 14px", minWidth: 380, maxHeight: 460, overflowY: "auto" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 14px", minWidth: 470, maxHeight: 480, overflowY: "auto" }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Run reports for</span>
                       <button onClick={() => setRpSelected([])} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
@@ -1174,13 +1174,19 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                         ))}
                       </div>
                       <div>
-                        <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Account Types</div>
-                        {INS_ACCT_TYPES.map(t => (
-                          <label key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer", whiteSpace: "nowrap" }}>
-                            <input type="checkbox" checked={rpSelected.includes("a:" + t)} onChange={() => toggleRp("a:" + t)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
-                            {t}
-                          </label>
-                        ))}
+                        <div style={{ fontSize: 10, fontWeight: 800, color: COLORS.accent, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Account Type</div>
+                        <div style={{ display: "flex", gap: 20 }}>
+                          {[INS_ACCT_TYPES.slice(0, 14), INS_ACCT_TYPES.slice(14)].map((col, ci) => (
+                            <div key={ci}>
+                              {col.map(t => (
+                                <label key={t} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer", whiteSpace: "nowrap" }}>
+                                  <input type="checkbox" checked={rpSelected.includes("a:" + t)} onChange={() => toggleRp("a:" + t)} style={{ width: 14, height: 14, accentColor: COLORS.primary, cursor: "pointer" }} />
+                                  {t}
+                                </label>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -1279,9 +1285,10 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
                         <tr style={{ background: "#2a5794" }}>
-                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "34%" }}>Client</th>
-                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Funding Amount</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "28%" }}>Client</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Open Date</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Funding Amount</th>
+                          <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em", width: "7%" }}>Q/NQ</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Account Type</th>
                           <th style={{ textAlign: "left", padding: "7px 14px", fontSize: 11, fontWeight: 900, color: "#fff", textTransform: "uppercase", letterSpacing: "0.04em" }}>Asset Class</th>
                         </tr>
@@ -1292,8 +1299,9 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>
                               {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
                             </td>
-                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.amount || "—"}</td>
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.dateFunded || "—"}</td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.amount || "—"}</td>
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.qualified || "—"}</td>
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.newAccountType || r.currentAccountType || "—"}</td>
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.newAssetClass || r.currentAssetClass || "—"}</td>
                           </tr>
