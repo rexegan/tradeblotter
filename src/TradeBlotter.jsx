@@ -1022,6 +1022,15 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
     return () => document.removeEventListener("mousedown", handler);
   }, [rpOpen]);
   const toggleRp = key => setRpSelected(ks => ks.includes(key) ? ks.filter(k => k !== key) : [...ks, key]);
+  const [flashId, setFlashId] = useState(null);
+  const goToRecord = id => {
+    setFlashId(id);
+    const el = document.getElementById("trade-record-" + id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    setTimeout(() => setFlashId(f => (f === id ? null : f)), 2500);
+  };
+  const clientName = r => (r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record";
+  const clientLinkStyle = { color: COLORS.accent, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
   const [rpFilters, setRpFilters] = useState({});
   const setRpFilter = (key, field, val) => setRpFilters(f => ({ ...f, [key]: { ...f[key], [field]: val } }));
   const reportRows = key => {
@@ -1236,8 +1245,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                     <tbody>
                       {rows.map((r, i) => (
                         <tr key={r.id} style={{ background: i % 2 ? "#eef2f7" : "#fff" }}>
-                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0", whiteSpace: "nowrap" }}>
-                            {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                          <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid #e2e8f0", whiteSpace: "nowrap" }}>
+                            <span onClick={() => goToRecord(r.id)} title="Go to this trade" style={clientLinkStyle}>{clientName(r)}</span>
                           </td>
                           {cols.map(f => (
                             <td key={f.label} style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{f.get(r)}</td>
@@ -1296,8 +1305,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
                       <tbody>
                         {rows.map((r, i) => (
                           <tr key={r.id} style={{ background: i % 2 ? "#eef2f7" : "#fff" }}>
-                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>
-                              {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
+                            <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, borderBottom: "1px solid #e2e8f0" }}>
+                              <span onClick={() => goToRecord(r.id)} title="Go to this trade" style={clientLinkStyle}>{clientName(r)}</span>
                             </td>
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.dateFunded || "—"}</td>
                             <td style={{ padding: "6px 14px", fontWeight: 700, fontSize: 13, color: "#000", borderBottom: "1px solid #e2e8f0" }}>{r.amount || "—"}</td>
@@ -1320,7 +1329,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               </div>
             ) : filtered.map((r, idx) => (
               <Fragment key={r.id}>
-              <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0 }}>
+              <div id={"trade-record-" + r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0, boxShadow: flashId === r.id ? "0 0 0 4px #f59e0b" : "none", transition: "box-shadow 0.4s", scrollMarginTop: 90 }}>
                 {/* Record header bar */}
                 <div style={{ padding: "6px 16px 8px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
                 <div style={{ minHeight: 26 }} />
