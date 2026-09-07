@@ -678,11 +678,11 @@ export default function TradeBlotter() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
         {view === "blotter" && (
-          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} />
+          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} blotterLabel="Broker Dealer Blotter" />
         )}
 
         {view === "insurance" && (
-          <RecordSheet records={insRecords} search={insSearch} setSearch={setInsSearch} onAdd={addIns} onUpdate={updateIns} onRemove={removeIns} />
+          <RecordSheet records={insRecords} search={insSearch} setSearch={setInsSearch} onAdd={addIns} onUpdate={updateIns} onRemove={removeIns} blotterLabel="Insurance Blotter" />
         )}
 
         {/* SETTINGS VIEW */}
@@ -996,7 +996,7 @@ const VIEW_BY_PRODUCTS = [
   { label: "Cash", match: ["cash"] },
 ];
 
-function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) {
+function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, blotterLabel }) {
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [reportStatus, setReportStatus] = useState("");
@@ -1332,7 +1332,9 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove }) 
               <div id={"trade-record-" + r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0, boxShadow: flashId === r.id ? "0 0 0 4px #f59e0b" : "none", transition: "box-shadow 0.4s", scrollMarginTop: 90 }}>
                 {/* Record header bar */}
                 <div style={{ padding: "6px 16px 8px", background: COLORS.primary, borderBottom: `1px solid ${COLORS.primaryHover}` }}>
-                <div style={{ minHeight: 26 }} />
+                <div style={{ minHeight: 26, display: "flex", alignItems: "center" }}>
+                  <span style={{ fontSize: 10, fontWeight: 800, color: COLORS.navyMuted, textTransform: "uppercase", letterSpacing: "0.12em" }}>{blotterLabel}</span>
+                </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                   <span style={{ fontWeight: 700, fontSize: 13, color: "#fff", whiteSpace: "nowrap" }}>
                     {(r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record"}
