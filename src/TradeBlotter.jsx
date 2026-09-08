@@ -678,7 +678,7 @@ export default function TradeBlotter() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
         {view === "blotter" && (
-          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} blotterLabel="Broker Dealer Blotter" />
+          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} blotterLabel="Broker Dealer Trade Blotter" />
         )}
 
         {view === "insurance" && (
