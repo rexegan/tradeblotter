@@ -323,7 +323,7 @@ const SAMPLE_TRADES = [
 ];
 
 const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank", "Credit Union", "Other"];
-const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "Custodial (UTMA)", "529", "HSA", "Annuity", "Life Insurance", "Other"];
+const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "529", "Annuity", "RILA", "Life Insurance"];
 const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities", "CDs", "Money Market", "Cash", "Real Estate", "Alternatives", "Life Insurance", "Other"];
 const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
 const INS_DOCS_STATUS = ["IGO", "NIGO", "In Process", "Needs Attention"];
