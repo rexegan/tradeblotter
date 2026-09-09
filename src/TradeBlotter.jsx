@@ -1027,7 +1027,6 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
     setFlashId(id);
     const el = document.getElementById("trade-record-" + id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-    setTimeout(() => setFlashId(f => (f === id ? null : f)), 2500);
   };
   const clientName = r => (r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record";
   const clientLinkStyle = { color: COLORS.primary, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
