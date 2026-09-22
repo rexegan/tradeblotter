@@ -998,6 +998,7 @@ const VIEW_BY_PRODUCTS = [
 ];
 
 function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, blotterLabel }) {
+  const [attentionFirst, setAttentionFirst] = useState(false);
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
   const [reportStatus, setReportStatus] = useState("");
@@ -1143,10 +1144,23 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                 { label: "Records", value: filtered.length, color: COLORS.primary },
                 { label: "Monthly Amounts", value: "$" + filtered.reduce((s, r) => s + money(r.monthlyAmount), 0).toLocaleString("en-US"), color: COLORS.primary },
                 { label: "Funded", value: filtered.filter(r => (r.dateFunded || "").trim() !== "").length, color: COLORS.accentGreen },
-                { label: "Needs Attention", value: filtered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed },
+                { label: "Needs Attention", value: filtered.filter(r => (r.docsReceived || "").startsWith("Needs")).length, color: COLORS.accentRed, clickable: true },
               ].map(c => (
-                <div key={c.label} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, padding: "16px 18px" }}>
-                  <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>{c.label}</div>
+                <div
+                  key={c.label}
+                  onClick={c.clickable ? () => setAttentionFirst(v => !v) : undefined}
+                  title={c.clickable ? (attentionFirst ? "Click to show trades in normal order" : "Click to bring these trades to the top") : undefined}
+                  style={{
+                    background: COLORS.bgCard,
+                    border: `1px solid ${c.clickable && attentionFirst ? COLORS.accentRed : COLORS.border}`,
+                    borderRadius: 10, padding: "16px 18px",
+                    cursor: c.clickable ? "pointer" : "default",
+                    boxShadow: c.clickable && attentionFirst ? `0 0 0 2px ${COLORS.accentRed}33` : "none",
+                  }}
+                >
+                  <div style={{ fontSize: 11, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
+                    {c.label}{c.clickable && attentionFirst ? " ↑" : ""}
+                  </div>
                   <div style={{ fontSize: 22, fontWeight: 800, color: c.color }}>{c.value}</div>
                 </div>
               ))}
@@ -1403,11 +1417,16 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
             })}
 
             {/* Records — one card per trade, two sleeves each */}
-            {filtered.length === 0 ? (
+            {(() => {
+              const needsAttention = r => (r.docsReceived || "").startsWith("Needs");
+              const displayRecords = attentionFirst
+                ? [...filtered].sort((a, b) => (needsAttention(b) ? 1 : 0) - (needsAttention(a) ? 1 : 0))
+                : filtered;
+              return displayRecords.length === 0 ? (
               <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: COLORS.textMuted }}>
                 No records. Click <strong style={{ color: COLORS.accent }}>+ Add Record</strong> to start one.
               </div>
-            ) : filtered.map((r, idx) => (
+            ) : displayRecords.map((r, idx) => (
               <Fragment key={r.id}>
               <div id={"trade-record-" + r.id} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 12, overflow: "hidden", marginBottom: 0, boxShadow: flashId === r.id ? "0 0 0 4px #f59e0b" : "none", transition: "box-shadow 0.4s", scrollMarginTop: 90 }}>
                 {/* Record header bar */}
@@ -1502,7 +1521,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                 </div>
               </div>
               </Fragment>
-            ))}
+            ));
+            })()}
 
             {/* Call Sheet modal */}
             {callSheetFor && (() => {
