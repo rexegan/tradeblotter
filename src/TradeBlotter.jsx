@@ -1030,6 +1030,33 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
   };
   const clientName = r => (r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record";
   const clientLinkStyle = { color: COLORS.primary, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
+  const [callSheetFor, setCallSheetFor] = useState(null);
+  const buildCallSheet = r => {
+    const now = new Date();
+    const today = now.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+    return {
+      dateOfCall: today,
+      time: now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+      dateCreated: today,
+      topNotes: r.notes || "",
+      clientName: `${r.firstName || ""} ${r.lastName || ""}`.trim(),
+      clientAddress: "", clientCityStateZip: "", clientPhone: "", clientSSN: "", clientDOB: "", clientDL: "",
+      custodian: r.fundsComingFrom || "",
+      custodianAddress: "", custodianCityStateZip: "", custodianPhone1: "", custodianPhone2: "",
+      currentProduct: [r.currentAssetClass, r.ticker].filter(Boolean).join(" — "),
+      issueOpenDate: "",
+      currentAccountNumber: r.currentPolicyNumber || "",
+      approxValueCurrent: r.amount || "",
+      currentNotes: "",
+      fundsGoingTo: r.receivingFirm || "",
+      fundsGoingAddress: "", fundsGoingCityStateZip: "", payableTo: "",
+      fundsGoingPhone1: "", fundsGoingPhone2: "",
+      newProduct: r.newAssetClass || "",
+      newAccountNumber: r.newPolicyNumber || "",
+      approxValueNew: r.amount || "",
+      newNotes: "",
+    };
+  };
   const [rpFilters, setRpFilters] = useState({});
   const setRpFilter = (key, field, val) => setRpFilters(f => ({ ...f, [key]: { ...f[key], [field]: val } }));
   const reportRows = key => {
@@ -1377,6 +1404,29 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                                         style={{ padding: "0 8px", fontSize: 14, fontWeight: 700, color: COLORS.accent, textDecoration: "none" }}>↗</a>
                                     )}
                                   </div>
+                                ) : c.key === "notes" ? (
+                                  <div style={{ display: "flex", alignItems: "center" }}>
+                                    <input
+                                      value={r[c.key] ?? ""}
+                                      onChange={e => onUpdate(r.id, c.key, e.target.value)}
+                                      style={{ flex: 1, minWidth: 0, boxSizing: "border-box", border: "none", background: "transparent", padding: "11px 10px", fontSize: 13, fontWeight: 700, color: "#000", outline: "none" }}
+                                    />
+                                    <label
+                                      title={r.callSheet ? "View / edit call sheet" : "Check to auto-build a call sheet from this trade"}
+                                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "0 12px", borderLeft: `1px solid ${COLORS.border}`, cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0 }}
+                                    >
+                                      <input
+                                        type="checkbox"
+                                        checked={!!r.callSheet}
+                                        onChange={() => {
+                                          if (!r.callSheet) onUpdate(r.id, "callSheet", buildCallSheet(r));
+                                          setCallSheetFor(r.id);
+                                        }}
+                                        style={{ width: 15, height: 15, accentColor: COLORS.accentGreen, cursor: "pointer" }}
+                                      />
+                                      <span style={{ fontSize: 11, fontWeight: 700, color: r.callSheet ? COLORS.primary : COLORS.textMuted }}>📞 Call Sheet</span>
+                                    </label>
+                                  </div>
                                 ) : (
                                   <input
                                     value={r[c.key] ?? ""}
@@ -1396,6 +1446,97 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
               </div>
               </Fragment>
             ))}
+
+            {/* Call Sheet modal */}
+            {callSheetFor && (() => {
+              const csRecord = records.find(x => x.id === callSheetFor);
+              if (!csRecord || !csRecord.callSheet) return null;
+              const cs = csRecord.callSheet;
+              const updateCS = (field, val) => onUpdate(csRecord.id, "callSheet", { ...cs, [field]: val });
+              const lblStyle = { fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.06em" };
+              const fieldStyle = { background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
+              const csInput = (label, field, opts = {}) => (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={lblStyle}>{label}</label>
+                  <input value={cs[field] ?? ""} onChange={e => updateCS(field, e.target.value)} placeholder={opts.placeholder || ""} style={fieldStyle} />
+                </div>
+              );
+              const csTextarea = (label, field) => (
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={lblStyle}>{label}</label>
+                  <textarea value={cs[field] ?? ""} onChange={e => updateCS(field, e.target.value)} rows={2} style={{ ...fieldStyle, resize: "vertical", fontFamily: "inherit" }} />
+                </div>
+              );
+              const sectionTitle = t => (
+                <div style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.primary, borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 6, marginBottom: 10 }}>{t}</div>
+              );
+              const row2 = children => <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
+              const row3 = children => <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
+              return (
+                <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setCallSheetFor(null)}>
+                  <div onClick={e => e.stopPropagation()} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 14, maxWidth: 780, width: "100%", maxHeight: "92vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+                    <div style={{ background: COLORS.primary, padding: "16px 24px", borderRadius: "14px 14px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <div>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>📞 Call Sheet</div>
+                        <div style={{ fontSize: 12, color: COLORS.navyMuted }}>{clientName(csRecord)}</div>
+                      </div>
+                      <button onClick={() => setCallSheetFor(null)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>✕ Close</button>
+                    </div>
+                    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+                      {row3([
+                        <div key="a">{csInput("Date of Call", "dateOfCall")}</div>,
+                        <div key="b">{csInput("Time", "time")}</div>,
+                        <div key="c" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                          <label style={lblStyle}>Date Created</label>
+                          <div style={{ padding: "8px 10px", fontSize: 13, color: COLORS.textMuted, background: "#f4f4f5", borderRadius: 6, border: `1px solid ${COLORS.border}` }}>{cs.dateCreated}</div>
+                        </div>,
+                      ])}
+                      {csTextarea("Notes", "topNotes")}
+
+                      <div>
+                        {sectionTitle("Client Information")}
+                        {row2([csInput("Client's Name", "clientName"), csInput("Phone #", "clientPhone", { placeholder: "Enter during call" })])}
+                        {row2([csInput("Address", "clientAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "clientCityStateZip", { placeholder: "Enter during call" })])}
+                        {row3([csInput("Social Security", "clientSSN", { placeholder: "Enter during call" }), csInput("DOB", "clientDOB", { placeholder: "Enter during call" }), csInput("DL #", "clientDL", { placeholder: "Enter during call" })])}
+                      </div>
+
+                      <div>
+                        {sectionTitle("Current Funds Held At")}
+                        {row2([csInput("Current Custodian", "custodian"), csInput("Account #", "currentAccountNumber")])}
+                        {row2([csInput("Address", "custodianAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "custodianCityStateZip", { placeholder: "Enter during call" })])}
+                        {row2([csInput("Phone #", "custodianPhone1", { placeholder: "Enter during call" }), csInput("Phone #", "custodianPhone2", { placeholder: "Enter during call" })])}
+                        {row3([csInput("Product Name", "currentProduct"), csInput("Issue / Open Date", "issueOpenDate", { placeholder: "Enter during call" }), csInput("Approx Value", "approxValueCurrent")])}
+                        {csTextarea("Notes", "currentNotes")}
+                      </div>
+
+                      <div>
+                        {sectionTitle("Funds Going To")}
+                        {row2([csInput("Funds Going To", "fundsGoingTo"), csInput("Payable To", "payableTo", { placeholder: "Enter during call" })])}
+                        {row2([csInput("Address", "fundsGoingAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "fundsGoingCityStateZip", { placeholder: "Enter during call" })])}
+                        {row2([csInput("Phone #", "fundsGoingPhone1", { placeholder: "Enter during call" }), csInput("Phone #", "fundsGoingPhone2", { placeholder: "Enter during call" })])}
+                        {row3([csInput("Product", "newProduct"), csInput("Account #", "newAccountNumber"), csInput("Approx Value", "approxValueNew")])}
+                        {csTextarea("Notes", "newNotes")}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 24px", borderTop: `1px solid ${COLORS.border}` }}>
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Remove this call sheet? This cannot be undone.")) {
+                            onUpdate(csRecord.id, "callSheet", null);
+                            setCallSheetFor(null);
+                          }
+                        }}
+                        style={{ padding: "8px 16px", borderRadius: 6, fontWeight: 600, fontSize: 12, cursor: "pointer", background: "transparent", color: COLORS.accentRed, border: `1px solid ${COLORS.accentRed}` }}
+                      >🗑 Delete Call Sheet</button>
+                      <div style={{ display: "flex", gap: 10 }}>
+                        <button onClick={() => window.print()} style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer", background: "transparent", color: COLORS.primary, border: `1px solid ${COLORS.primary}` }}>🖨 Print</button>
+                        <button onClick={() => setCallSheetFor(null)} style={{ padding: "8px 18px", borderRadius: 6, fontWeight: 700, fontSize: 13, cursor: "pointer", background: COLORS.primary, color: "#fff", border: "none" }}>Done</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
     </>
   );
 }
