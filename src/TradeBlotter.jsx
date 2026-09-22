@@ -1032,16 +1032,56 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
   const clientName = r => (r.lastName || r.firstName) ? `${r.lastName || ""}${r.lastName && r.firstName ? ", " : ""}${r.firstName || ""}` : "New Record";
   const clientLinkStyle = { color: COLORS.primary, cursor: "pointer", textDecoration: "underline", textUnderlineOffset: 2 };
   const [callSheetFor, setCallSheetFor] = useState(null);
+  const findIntakeClient = r => {
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem("rwg_clients") || "[]"); } catch { saved = []; }
+    const tLast = (r.lastName || "").trim().toLowerCase();
+    const tFirst = (r.firstName || "").trim().toLowerCase();
+    if (!tLast || !Array.isArray(saved) || saved.length === 0) return null;
+    const nameMatches = (person, wantSpouse) => {
+      const p = wantSpouse ? person?.spouse : person?.client;
+      if (!p || (p.lastName || "").trim().toLowerCase() !== tLast) return null;
+      return p;
+    };
+    for (const rec of saved) {
+      const c = nameMatches(rec, false);
+      if (c && (!tFirst || tFirst.includes((c.firstName || "").trim().toLowerCase()))) return c;
+    }
+    for (const rec of saved) {
+      const s = nameMatches(rec, true);
+      if (s && (!tFirst || tFirst.includes((s.firstName || "").trim().toLowerCase()))) return s;
+    }
+    // fall back to a last-name-only match if nothing scored on first name
+    for (const rec of saved) {
+      const c = nameMatches(rec, false) || nameMatches(rec, true);
+      if (c) return c;
+    }
+    return null;
+  };
+  const intakeToCallSheetFields = p => {
+    if (!p) return { clientAddress: "", clientCityStateZip: "", clientPhone: "", clientSSN: "", clientDOB: "", clientDL: "" };
+    const address = [p.addressLine1, p.addressLine2].filter(Boolean).join(", ");
+    const cityStateZip = [p.city, [p.state, p.zip].filter(Boolean).join(" ")].filter(Boolean).join(", ");
+    return {
+      clientAddress: address,
+      clientCityStateZip: cityStateZip,
+      clientPhone: p.cell || p.homePhone || "",
+      clientSSN: p.ssn || "",
+      clientDOB: p.dob || "",
+      clientDL: p.dlNumber || "",
+    };
+  };
   const buildCallSheet = r => {
     const now = new Date();
     const today = now.toLocaleDateString("en-US", { month: "2-digit", day: "2-digit", year: "numeric" });
+    const intakeFields = intakeToCallSheetFields(findIntakeClient(r));
     return {
       dateOfCall: today,
       time: now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
       dateCreated: today,
       topNotes: r.notes || "",
       clientName: `${r.firstName || ""} ${r.lastName || ""}`.trim(),
-      clientAddress: "", clientCityStateZip: "", clientPhone: "", clientSSN: "", clientDOB: "", clientDL: "",
+      ...intakeFields,
       custodian: r.fundsComingFrom || "",
       custodianAddress: "", custodianCityStateZip: "", custodianPhone1: "", custodianPhone2: "",
       currentProduct: [r.currentAssetClass, r.ticker].filter(Boolean).join(" — "),
@@ -1528,10 +1568,22 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                       {csTextarea("Notes", "topNotes")}
 
                       <div>
-                        {sectionTitle("Client Information")}
-                        {row2([csInput("Client's Name", "clientName"), csInput("Phone #", "clientPhone", { placeholder: "Enter during call" })])}
-                        {row2([csInput("Address", "clientAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "clientCityStateZip", { placeholder: "Enter during call" })])}
-                        {row3([csInput("Social Security", "clientSSN", { placeholder: "Enter during call" }), csInput("DOB", "clientDOB", { placeholder: "Enter during call" }), csInput("DL #", "clientDL", { placeholder: "Enter during call" })])}
+                        <div className="cs-section-title" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 6, marginBottom: 10 }}>
+                          <span style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.primary }}>Client Information</span>
+                          <button
+                            className="no-print"
+                            onClick={() => {
+                              const match = findIntakeClient(csRecord);
+                              const fields = intakeToCallSheetFields(match);
+                              onUpdate(csRecord.id, "callSheet", { ...cs, ...fields });
+                              if (!match) window.alert("No matching client found in the Intake app for this name. Fields left as-is — you can type them in manually.");
+                            }}
+                            style={{ background: "transparent", border: `1px solid ${COLORS.accent}`, borderRadius: 5, color: COLORS.accent, padding: "3px 10px", fontSize: 11, cursor: "pointer", fontWeight: 600 }}
+                          >🔄 Pull from Intake Profile</button>
+                        </div>
+                        {row2([csInput("Client's Name", "clientName"), csInput("Phone #", "clientPhone", { placeholder: "From intake profile" })])}
+                        {row2([csInput("Address", "clientAddress", { placeholder: "From intake profile" }), csInput("City, State, Zip", "clientCityStateZip", { placeholder: "From intake profile" })])}
+                        {row3([csInput("Social Security", "clientSSN", { placeholder: "From intake profile" }), csInput("DOB", "clientDOB", { placeholder: "From intake profile" }), csInput("DL #", "clientDL", { placeholder: "From intake profile" })])}
                       </div>
 
                       <div>
