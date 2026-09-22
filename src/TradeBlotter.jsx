@@ -1227,6 +1227,19 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                   </div>
                 )}
               </span>
+              {records.some(r => r.callSheet) && (
+                <button
+                  onClick={() => {
+                    const n = records.filter(r => r.callSheet).length;
+                    if (window.confirm(`Clear all ${n} call sheet${n !== 1 ? "s" : ""}? This removes the call sheet data but leaves the trades themselves untouched.`)) {
+                      records.filter(r => r.callSheet).forEach(r => onUpdate(r.id, "callSheet", null));
+                    }
+                  }}
+                  style={{ background: COLORS.bgInput, border: `1px solid ${COLORS.accentRed}`, borderRadius: 6, color: COLORS.accentRed, padding: "8px 12px", fontSize: 13, fontWeight: 600, cursor: "pointer" }}
+                >
+                  🧹 Clear Call Sheets ({records.filter(r => r.callSheet).length})
+                </button>
+              )}
             </div>
 
             {/* Quick View panel */}
@@ -1419,7 +1432,10 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                                         type="checkbox"
                                         checked={!!r.callSheet}
                                         onChange={() => {
-                                          if (!r.callSheet) onUpdate(r.id, "callSheet", buildCallSheet(r));
+                                          if (!r.callSheet) {
+                                            if (!window.confirm(`Create a call sheet for ${clientName(r)} using this trade's information?`)) return;
+                                            onUpdate(r.id, "callSheet", buildCallSheet(r));
+                                          }
                                           setCallSheetFor(r.id);
                                         }}
                                         style={{ width: 15, height: 15, accentColor: COLORS.accentGreen, cursor: "pointer" }}
