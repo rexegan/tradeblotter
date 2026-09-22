@@ -927,8 +927,8 @@ function RecordTimer({ r, onUpdate }) {
         <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 800, color: "#fff", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>
           <input
             type="checkbox"
-            checked={!!r.docsReceivedChecked}
-            onChange={e => onUpdate(r.id, "docsReceivedChecked", e.target.checked)}
+            checked={r.docsReceived === "IGO"}
+            onChange={e => onUpdate(r.id, "docsReceived", e.target.checked ? "IGO" : "")}
             style={{ width: 13, height: 13, accentColor: "#22c55e", cursor: "pointer" }}
           />
           Received
