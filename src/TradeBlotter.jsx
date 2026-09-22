@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, Fragment } from "react";
+import { createPortal } from "react-dom";
 
 const COLORS = {
   bg: "#fafafa",
@@ -1472,33 +1473,50 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
               const lblStyle = { fontSize: 11, fontWeight: 600, color: COLORS.textLabel, textTransform: "uppercase", letterSpacing: "0.06em" };
               const fieldStyle = { background: COLORS.bgInput, border: `1px solid ${COLORS.border}`, borderRadius: 6, color: COLORS.text, padding: "8px 10px", fontSize: 13, outline: "none", width: "100%", boxSizing: "border-box" };
               const csInput = (label, field, opts = {}) => (
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div className="cs-field" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <label style={lblStyle}>{label}</label>
                   <input value={cs[field] ?? ""} onChange={e => updateCS(field, e.target.value)} placeholder={opts.placeholder || ""} style={fieldStyle} />
                 </div>
               );
               const csTextarea = (label, field) => (
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div className="cs-field" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <label style={lblStyle}>{label}</label>
                   <textarea value={cs[field] ?? ""} onChange={e => updateCS(field, e.target.value)} rows={2} style={{ ...fieldStyle, resize: "vertical", fontFamily: "inherit" }} />
                 </div>
               );
               const sectionTitle = t => (
-                <div style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.primary, borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 6, marginBottom: 10 }}>{t}</div>
+                <div className="cs-section-title" style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: COLORS.primary, borderBottom: `1px solid ${COLORS.border}`, paddingBottom: 6, marginBottom: 10 }}>{t}</div>
               );
-              const row2 = children => <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
-              const row3 = children => <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
-              return (
-                <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setCallSheetFor(null)}>
-                  <div onClick={e => e.stopPropagation()} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 14, maxWidth: 780, width: "100%", maxHeight: "92vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
-                    <div style={{ background: COLORS.primary, padding: "16px 24px", borderRadius: "14px 14px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              const row2 = children => <div className="cs-row" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
+              const row3 = children => <div className="cs-row" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 12, marginBottom: 12 }}>{children}</div>;
+              return createPortal(
+                <div className="cs-print-root" style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={() => setCallSheetFor(null)}>
+                  <style>{`
+                    @media print {
+                      @page { size: letter; margin: 0.35in; }
+                      #root { display: none !important; }
+                      .cs-print-root { position: static !important; inset: auto !important; background: none !important; padding: 0 !important; display: block !important; height: auto !important; }
+                      .cs-print-card { position: static !important; width: 100% !important; max-width: none !important; max-height: none !important; overflow: visible !important; box-shadow: none !important; border: none !important; border-radius: 0 !important; margin: 0 !important; }
+                      .no-print { display: none !important; }
+                      .cs-print-header { padding: 8px 16px !important; }
+                      .cs-print-body { padding: 10px 16px !important; gap: 8px !important; }
+                      .cs-section-title { font-size: 10px !important; padding-bottom: 3px !important; margin-bottom: 4px !important; }
+                      .cs-row { gap: 8px !important; margin-bottom: 6px !important; }
+                      .cs-field { gap: 1px !important; }
+                      .cs-field label { font-size: 7.5px !important; letter-spacing: 0.02em !important; }
+                      .cs-field input, .cs-field textarea { font-size: 10px !important; padding: 3px 6px !important; }
+                      .cs-field textarea { min-height: 18px !important; height: 18px !important; }
+                    }
+                  `}</style>
+                  <div className="cs-print-card" onClick={e => e.stopPropagation()} style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 14, maxWidth: 780, width: "100%", maxHeight: "92vh", overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.3)" }}>
+                    <div className="cs-print-header" style={{ background: COLORS.primary, padding: "16px 24px", borderRadius: "14px 14px 0 0", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <div>
                         <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>📞 Call Sheet</div>
                         <div style={{ fontSize: 12, color: COLORS.navyMuted }}>{clientName(csRecord)}</div>
                       </div>
-                      <button onClick={() => setCallSheetFor(null)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>✕ Close</button>
+                      <button className="no-print" onClick={() => setCallSheetFor(null)} style={{ background: "rgba(255,255,255,0.12)", border: "1px solid rgba(255,255,255,0.4)", borderRadius: 5, color: "#fff", padding: "6px 14px", fontSize: 12, cursor: "pointer", fontWeight: 600 }}>✕ Close</button>
                     </div>
-                    <div style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
+                    <div className="cs-print-body" style={{ padding: 24, display: "flex", flexDirection: "column", gap: 20 }}>
                       {row3([
                         <div key="a">{csInput("Date of Call", "dateOfCall")}</div>,
                         <div key="b">{csInput("Time", "time")}</div>,
@@ -1534,7 +1552,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                         {csTextarea("Notes", "newNotes")}
                       </div>
                     </div>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 24px", borderTop: `1px solid ${COLORS.border}` }}>
+                    <div className="no-print" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 24px", borderTop: `1px solid ${COLORS.border}` }}>
                       <button
                         onClick={() => {
                           if (window.confirm("Remove this call sheet? This cannot be undone.")) {
@@ -1550,7 +1568,8 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                       </div>
                     </div>
                   </div>
-                </div>
+                </div>,
+                document.body
               );
             })()}
     </>
