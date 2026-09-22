@@ -323,7 +323,7 @@ const SAMPLE_TRADES = [
   { id: nextId++, tradeDate: "2026-06-15", clientName: "Whitfield, Dorothy", lastName: "Whitfield", firstName: "Dorothy", middleName: "", accountNumber: "RWG-10112", accountType: "IRA", custodian: "Fidelity", tradeType: "Buy", assetClass: "Annuity – Indexed", ticker: "ALZ-222", securityName: "Allianz 222 Annuity", productType: "Fixed Indexed Annuity (FIA)", carrier: "Allianz Life", quantity: "1", price: "150000", totalAmount: "150,000.00", orderType: "Market", timeInForce: "Day", settlement: "Same Day", status: "Submitted", advisor: "Rex Russell", riskLevel: "Conservative", solicited: "Solicited", discretion: "Non-Discretionary", notes: "1035 exchange from existing VA" },
 ];
 
-const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank", "Credit Union", "Other"];
+const INS_INSTITUTIONS = ["Vanguard", "Empower", "Fidelity", "Schwab", "TIAA", "T. Rowe Price", "Principal", "Prudential", "Transamerica", "Lincoln Financial", "John Hancock", "Nationwide", "MassMutual", "Voya", "American Funds", "Franklin Templeton", "Merrill Lynch", "Morgan Stanley", "Edward Jones", "Raymond James", "LPL Financial", "Pershing", "TD Ameritrade", "Bank", "Credit Union", "Other"];
 const INS_ACCT_TYPES = ["401(k)", "Roth 401(k)", "403(b)", "457(b)", "IRA", "Roth IRA", "SEP IRA", "SIMPLE IRA", "Pension", "Individual", "Joint", "Trust", "529", "Annuity", "RILA", "Life Insurance"];
 const INS_ASSET_CLASSES = ["Stocks", "Bonds", "Mutual Funds", "ETFs", "Annuities", "CDs", "Money Market", "Cash", "Real Estate", "Alternatives", "Life Insurance", "Other"];
 const INS_FUNDING_METHODS = ["1035 Exchange", "ACH", "Wire", "Check", "Direct Rollover", "60-Day Rollover", "Trustee-to-Trustee Transfer", "In-Kind Transfer (ACAT)", "Journal", "Other"];
@@ -546,10 +546,30 @@ export default function TradeBlotter() {
     preferredETFs: ["BlackRock (iShares)", "Vanguard", "State Street (SPDR)"],
     preferredAlts: [],
     preferredCustodians: ["Schwab", "Fidelity"],
+    customInstitutions: [],
     complianceNotes: "", generalNotes: "",
   });
 
   const setSetting = (k) => (v) => setSettings(s => ({ ...s, [k]: v }));
+
+  const allInstitutions = [
+    ...INS_INSTITUTIONS.slice(0, -1),
+    ...(settings.customInstitutions || []).filter(
+      c => !INS_INSTITUTIONS.some(b => b.toLowerCase() === c.toLowerCase())
+    ),
+    "Other",
+  ];
+  const addCustomInstitution = name => {
+    const trimmed = (name || "").trim();
+    if (!trimmed) return;
+    setSettings(s => {
+      const already = [...INS_INSTITUTIONS, ...(s.customInstitutions || [])].some(
+        c => c.toLowerCase() === trimmed.toLowerCase()
+      );
+      if (already) return s;
+      return { ...s, customInstitutions: [...(s.customInstitutions || []), trimmed] };
+    });
+  };
 
   const [savedAt, setSavedAt] = useState(null);
   useEffect(() => {
@@ -679,11 +699,11 @@ export default function TradeBlotter() {
       <div style={{ maxWidth: 1400, margin: "0 auto", padding: "24px 24px" }}>
 
         {view === "blotter" && (
-          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} blotterLabel="Broker Dealer Trade Blotter" />
+          <RecordSheet records={bdRecords} search={bdSearch} setSearch={setBdSearch} onAdd={addBd} onUpdate={updateBd} onRemove={removeBd} blotterLabel="Broker Dealer Trade Blotter" institutions={allInstitutions} onAddInstitution={addCustomInstitution} />
         )}
 
         {view === "insurance" && (
-          <RecordSheet records={insRecords} search={insSearch} setSearch={setInsSearch} onAdd={addIns} onUpdate={updateIns} onRemove={removeIns} blotterLabel="Insurance Blotter" />
+          <RecordSheet records={insRecords} search={insSearch} setSearch={setInsSearch} onAdd={addIns} onUpdate={updateIns} onRemove={removeIns} blotterLabel="Insurance Blotter" institutions={allInstitutions} onAddInstitution={addCustomInstitution} />
         )}
 
         {/* SETTINGS VIEW */}
@@ -997,7 +1017,7 @@ const VIEW_BY_PRODUCTS = [
   { label: "Cash", match: ["cash"] },
 ];
 
-function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, blotterLabel }) {
+function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, blotterLabel, institutions, onAddInstitution }) {
   const [attentionFirst, setAttentionFirst] = useState(false);
   const [filterMonth, setFilterMonth] = useState("");
   const [filterYear, setFilterYear] = useState("");
@@ -1538,6 +1558,31 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                   <input value={cs[field] ?? ""} onChange={e => updateCS(field, e.target.value)} placeholder={opts.placeholder || ""} style={fieldStyle} />
                 </div>
               );
+              const csSelect = (label, field) => (
+                <div className="cs-field" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  <label style={lblStyle}>{label}</label>
+                  <select
+                    value={institutions.includes(cs[field]) ? cs[field] : ""}
+                    onChange={e => {
+                      if (e.target.value === "__add__") {
+                        const name = window.prompt("Add a new company to this list:");
+                        const trimmed = (name || "").trim();
+                        if (trimmed) {
+                          onAddInstitution(trimmed);
+                          updateCS(field, trimmed);
+                        }
+                      } else {
+                        updateCS(field, e.target.value);
+                      }
+                    }}
+                    style={{ ...fieldStyle, cursor: "pointer" }}
+                  >
+                    <option value="">{cs[field] && !institutions.includes(cs[field]) ? cs[field] : "— Select —"}</option>
+                    {institutions.map(o => <option key={o} value={o}>{o}</option>)}
+                    <option value="__add__">+ Add New Company…</option>
+                  </select>
+                </div>
+              );
               const csTextarea = (label, field) => (
                 <div className="cs-field" style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                   <label style={lblStyle}>{label}</label>
@@ -1608,7 +1653,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
 
                       <div>
                         {sectionTitle("Current Funds Held At")}
-                        {row2([csInput("Current Custodian", "custodian"), csInput("Account #", "currentAccountNumber")])}
+                        {row2([csSelect("Current Custodian", "custodian"), csInput("Account #", "currentAccountNumber")])}
                         {row2([csInput("Address", "custodianAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "custodianCityStateZip", { placeholder: "Enter during call" })])}
                         {row2([csInput("Phone #", "custodianPhone1", { placeholder: "Enter during call" }), csInput("Phone #", "custodianPhone2", { placeholder: "Enter during call" })])}
                         {row3([csInput("Product Name", "currentProduct"), csInput("Issue / Open Date", "issueOpenDate", { placeholder: "Enter during call" }), csInput("Approx Value", "approxValueCurrent")])}
@@ -1617,7 +1662,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
 
                       <div>
                         {sectionTitle("Funds Going To")}
-                        {row2([csInput("Funds Going To", "fundsGoingTo"), csInput("Payable To", "payableTo", { placeholder: "Enter during call" })])}
+                        {row2([csSelect("Funds Going To", "fundsGoingTo"), csInput("Payable To", "payableTo", { placeholder: "Enter during call" })])}
                         {row2([csInput("Address", "fundsGoingAddress", { placeholder: "Enter during call" }), csInput("City, State, Zip", "fundsGoingCityStateZip", { placeholder: "Enter during call" })])}
                         {row2([csInput("Phone #", "fundsGoingPhone1", { placeholder: "Enter during call" }), csInput("Phone #", "fundsGoingPhone2", { placeholder: "Enter during call" })])}
                         {row3([csInput("Product", "newProduct"), csInput("Account #", "newAccountNumber"), csInput("Approx Value", "approxValueNew")])}
