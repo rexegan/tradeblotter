@@ -997,7 +997,15 @@ const QUICK_VIEW_FIELDS = [
   { label: "Receiving Firm", get: r => r.receivingFirm || "—" },
   { label: "Funding Method", get: r => r.fundingMethod || "—" },
   { label: "Bank Draft", get: r => r.bankDraft || "No" },
+  { label: "Draft Start Date", get: r => r.draftStartDate || "—" },
   { label: "Mo. Draft $ AMT", get: r => r.monthlyAmount || "—" },
+];
+
+// Left-to-right column order for the "Monthly Contributions" Quick View preset:
+// dollar amount, where it's going, what kind of account, then the rest of the picture.
+const MONTHLY_CONTRIB_ORDER = [
+  "Mo. Draft $ AMT", "Receiving Firm", "Account Type", "Q/NQ", "Asset Class",
+  "Funds Coming From", "Funding Method", "Draft Start Date", "Bank Draft",
 ];
 
 const VIEW_BY_PRODUCTS = [
@@ -1025,6 +1033,7 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
   const [viewBy, setViewBy] = useState("");
   const [qvOpen, setQvOpen] = useState(false);
   const [qvFields, setQvFields] = useState([]);
+  const [qvMonthlyOnly, setQvMonthlyOnly] = useState(false);
   const qvRef = useRef(null);
   useEffect(() => {
     if (!qvOpen) return;
@@ -1243,12 +1252,22 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                   Quick View{qvFields.length ? ` (${qvFields.length})` : ""} ▾
                 </button>
                 {qvOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 12px", minWidth: 230 }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 50, background: "#fff", border: `1px solid ${COLORS.border}`, borderRadius: 8, boxShadow: "0 8px 24px rgba(15,42,82,0.18)", padding: "10px 12px", minWidth: 250 }}>
+                    <button
+                      onClick={() => { setQvFields(MONTHLY_CONTRIB_ORDER); setQvMonthlyOnly(true); }}
+                      style={{ width: "100%", display: "block", textAlign: "left", background: "#ecfdf5", border: `1px solid ${COLORS.accentGreen}`, borderRadius: 6, color: COLORS.accentGreen, padding: "8px 10px", fontSize: 12, fontWeight: 700, cursor: "pointer", marginBottom: 10 }}
+                    >
+                      💰 Monthly Contributions — amount, where it's going, account type, the whole picture
+                    </button>
+                    <label style={{ display: "flex", alignItems: "center", gap: 8, padding: "2px 0 10px", fontSize: 12, fontWeight: 700, color: COLORS.textLabel, cursor: "pointer", borderBottom: `1px solid ${COLORS.border}`, marginBottom: 8 }}>
+                      <input type="checkbox" checked={qvMonthlyOnly} onChange={e => setQvMonthlyOnly(e.target.checked)} style={{ width: 14, height: 14, accentColor: COLORS.accentGreen, cursor: "pointer" }} />
+                      Only clients with an active monthly draft
+                    </label>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                       <span style={{ fontSize: 11, fontWeight: 800, color: COLORS.textMuted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Show columns</span>
                       <span style={{ display: "flex", gap: 10 }}>
                         <button onClick={() => setQvFields(QUICK_VIEW_FIELDS.map(f => f.label))} style={{ background: "none", border: "none", color: COLORS.accent, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>All</button>
-                        <button onClick={() => setQvFields([])} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
+                        <button onClick={() => { setQvFields([]); setQvMonthlyOnly(false); }} style={{ background: "none", border: "none", color: COLORS.accentRed, fontSize: 11, fontWeight: 700, cursor: "pointer", padding: 0 }}>Clear</button>
                       </span>
                     </div>
                     {QUICK_VIEW_FIELDS.map(f => (
@@ -1319,12 +1338,18 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
 
             {/* Quick View panel */}
             {qvFields.length > 0 && (() => {
-              const cols = QUICK_VIEW_FIELDS.filter(f => qvFields.includes(f.label));
+              const orderedLabels = qvMonthlyOnly
+                ? MONTHLY_CONTRIB_ORDER.filter(l => qvFields.includes(l))
+                : QUICK_VIEW_FIELDS.map(f => f.label).filter(l => qvFields.includes(l));
+              const cols = orderedLabels.map(l => QUICK_VIEW_FIELDS.find(f => f.label === l)).filter(Boolean);
               const openTs = r => {
                 const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})/.exec((r.dateFunded || "").trim());
                 return m ? new Date(+m[3], +m[1] - 1, +m[2]).getTime() : null;
               };
-              const rows = [...filtered].sort((a, b) => {
+              const monthlyFiltered = qvMonthlyOnly
+                ? filtered.filter(r => r.bankDraft === "Yes" || money(r.monthlyAmount) > 0)
+                : filtered;
+              const rows = [...monthlyFiltered].sort((a, b) => {
                 if (qvSort) {
                   const cmp = (a.lastName || "").localeCompare(b.lastName || "");
                   return qvSort === "za" ? -cmp : cmp;
@@ -1335,10 +1360,18 @@ function RecordSheet({ records, search, setSearch, onAdd, onUpdate, onRemove, bl
                 if (tb === null) return -1;
                 return tb - ta;
               });
+              const monthlyTotal = rows.reduce((s, r) => s + money(r.monthlyAmount), 0);
               return (
                 <div style={{ background: COLORS.bgCard, border: `1px solid ${COLORS.border}`, borderRadius: 10, marginBottom: 18, overflow: "hidden" }}>
-                  <div style={{ background: COLORS.primary, color: "#fff", fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em", padding: "9px 14px" }}>
-                    Quick View
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", background: COLORS.primary, color: "#fff", padding: "9px 14px" }}>
+                    <span style={{ fontWeight: 800, fontSize: 12, textTransform: "uppercase", letterSpacing: "0.06em" }}>
+                      {qvMonthlyOnly ? "Quick View — Monthly Contributions" : "Quick View"}
+                    </span>
+                    {qvMonthlyOnly && (
+                      <span style={{ fontWeight: 700, fontSize: 12, color: COLORS.navyMuted }}>
+                        {rows.length} client{rows.length !== 1 ? "s" : ""} · ${monthlyTotal.toLocaleString("en-US")}/mo
+                      </span>
+                    )}
                   </div>
                   <div style={{ overflowX: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
